@@ -1,0 +1,9 @@
+<!-- The SAR META-INF/jboss-service.xml descriptor -->
+<server>
+    <mbean code="nu.najt.kecon.jsocksproxy.JSocksProxy" 
+           name="¨JSocksProxy:service=JSocksProxy">
+        <attribute name="JndiName">JSocksProxy</attribute>
+        <attribute name="ConfigurationBasePathPropertyKey">jboss.server.config.url</attribute>
+        <depends>jboss:service=Naming</depends>
+    </mbean>
+</server> 

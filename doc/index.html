@@ -1,0 +1,241 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>JSocketProxy</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="Content-Language" content="en" />
+<meta name="author" content="Kenny Colliander Nordin" />
+<meta name="copyright"
+	content="Copyright (c) 2006-2011 Kenny Colliander Nordin" />
+<meta name="description"
+	content="Documentation for JSocksProxy, which is a Java based SOCKS proxy which supports both v4, v4a and v5" />
+<meta name="keywords"
+	content="jsocksproxy,socks,socks5,socks4,java,v4,v5,jboss" />
+<style type="text/css">
+body {
+	font-size: 11pt;
+	padding-top: 20px;
+	padding-left: 60px;
+	padding-bottom: 30px;
+	margin: 0px;
+	background: #fff url(images/leftbg.png) repeat-y;
+}
+
+div.h1 {
+	width: 100%;
+	font-weight: bold;
+	font-size: 14pt;
+	display: block;
+	margin-top: 30px;
+}
+
+div.h2 {
+	width: 100%;
+	font-weight: bold;
+	font-size: 12pt;
+	display: block;
+	margin-top: 20px;
+}
+
+div.h3 {
+	width: 100%;
+	display: block;
+	font-weight: bold;
+	margin-top: 10px;
+}
+
+div.copyright {
+	width: 100%;
+	font-size: 10pt;
+	display: block;
+	margin-top: 10px;
+}
+
+img.ui {
+	padding-top: 10px;
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-bottom: 0px;
+	margin: 0px;
+}
+
+span.sysfont {
+	font-family: courier;
+}
+</style>
+</head>
+<body>
+<div style="width: 800px; padding-left: 15px; padding-top: 10px;">
+<div style="font-weight: bold; font-size: 16pt; display: block">JSocksProxy 2</div>
+<div class="copyright">Copyright &copy; 2006-2008 Kenny Colliander
+Nordin</div>
+
+<div class="h1">1. Introduction</div>
+JSocksProxy is written by Kenny Colliander Nordin in Java to be
+platform independent. The reason for writing the SOCKS proxy was that
+we needed a SOCKS proxy at work, but we had difficulties to find any
+free good proxy, so I decided to write my own since the protocol is so
+simple.<br />
+<br />
+The proxy can handle SOCKS versions 4, 4a and 5, but only outgoing TCP
+connections and has no support for authentication. IPv6 should be
+supported for version 5, but it's not tested.
+<br />
+<br />
+The proxy can be installed as a Pojo or as an JBoss MBean service.
+
+<div class="h1">2. License<a name="configuration" /></div>
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may
+not use this file except in compliance with the License. You may obtain
+a copy of the License at<br />
+<br />
+<a href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a><br />
+<br />
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+
+
+<div class="h1">3. Configuration<a name="configuration" /></div>
+The application has one configuration file <a href="#jsocksproxy.xml">jsocksproxy.xml</a>
+which may be located under the root or in the conf directory of your JBoss instance if 
+the application is running under JBoss.
+
+<div class="h2">3.1 Configuration file jsocksproxy.xml<a
+	name="jsocksproxy.xml" /></div>
+This is an example of how this configuration file could look like.<br />
+The configuration file is reloaded every 60 seconds. <span
+	class="sysfont" style="margin: 10px;"><br />
+<br />
+&lt;?xml version="1.0" encoding="utf-8"?&gt;<br />
+&lt;configuration&gt; 
+<br /> &nbsp;&nbsp; &nbsp;&lt;backlog&gt;100&lt;/backlog&gt; 
+<br /> &nbsp;&nbsp;
+&nbsp;&lt;outgoingAddress&gt;0.0.0.0&lt;/outgoingAddress&gt; 
+<br /> &nbsp;&nbsp; &nbsp;&lt;listen&gt; 
+<br /> &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&lt;address&gt;127.0.0.1&lt;/address&gt; 
+<br /> &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&lt;port&gt;1080&lt;/port&gt; 
+<br /> &nbsp;&nbsp; &nbsp;&lt;/listen&gt; 
+<br /> &lt;/configuration&gt; 
+<br />
+</span>
+<div class="h3">3.1.1 outgoingAddress</div>
+<ul>
+	<li>The ip address that should be used as source address for
+	outgoing connections.</li>
+</ul>
+<div class="h3">3.1.2 backlog</div>
+<ul>
+	<li>How many connections that are queued (1-100). This is not max
+	number of ongoing connections.</li>
+</ul>
+<div class="h3">3.1.3 listen</div>
+Specifies on which addresses the server should listen for SOCKS clients.
+Several listen elements may be specified.
+<ul>
+	<li>address - the ip address</li>
+	<li>port - the port</li>
+</ul>
+
+<div class="h2">3.2 Graphical Administration interface</div>
+The administration interface can be started by running jsocksproxy.jar and requires that 
+you locate the <a href="#jsocksproxy.xml">jsocksproxy.xml</a>.<br /><br />
+The interface has English as default language but also supports localized text.<br /><br /> 
+Supported localized texts:
+<ul>
+	<li>English (default)</li>
+	<li>Swedish</li>
+</ul>
+
+<div class="h3">3.2.1 Listen tab</div>
+You may add or remove end points that the socks server should wait for incoming connections on.<br />
+<img src="images/uilisten.png" width="520" height="380" alt="Listen tab" class="ui" /><br />
+
+
+<div class="h3">3.2.2 Outgoing tab</div>
+You may choose the outgoing address, the OS will decide the best suitable address if 0.0.0.0 is specified.<br />
+<img src="images/uioutgoing.png" width="520" height="380" alt="Outgoing tab" class="ui" /><br />
+
+
+<div class="h3">3.2.2 Advanced tab</div>
+Backlog tell the OS how many connections that should be queued for a specific end point and must be a value between 1 and 100.<br />
+Allow v4 and Allow v5 specifies which SOCKS protocols that may be used.<br />
+<img src="images/uiadvanced.png" width="520" height="380" alt="Advanced tab" class="ui" />
+
+
+<div class="h1">4. Obtain a new version</div>
+The home page for this project is <a
+	href="http://kecon.najt.nu/jsocksproxy/download/">http://kecon.najt.nu/jsocksproxy/download/</a>.
+
+<div class="h1">5. Requirements</div>
+JSocksProxy requires <a href="http://java.sun.com/">Java 6 SE</a> or later,
+which can be downloaded from <a href="http://java.sun.com/">http://java.sun.com/</a>.
+
+<div class="h1">6. Install</div>
+The JSocksProxy can be installed in two ways from this distribution. You can either install it as a Pojo (Plain Old Java Object)
+or install it as a MBean in the JBoss application server.
+
+<div class="h2">6.1 JBoss Install</div>
+This is the easiest way to install the JSocksProxy. This install assume that you have Java 1.6 and JBoss 4.0 or later installed.
+<ol>
+	<li>Copy <span class="sysfont">conf/jsocksproxy.xml</span> 
+		into the <span class="sysfont">${jboss.home}/server/${jboss.server.name}/conf/</span> directory</li>
+	<li>Next step is to configure <a href="#jsocksproxy.xml">jsocksproxy.xml</a>, read more about
+	the settings under <a href="#configuration">configuration</a></li>
+	<li>Copy <span class="sysfont">dist/jsocksproxy.sar</span> 
+		into the <span class="sysfont">${jboss.home}/server/${jboss.server.name}/deploy/</span> directory</li>
+		
+</ol>
+The application should auto deploy and stop when you shutdown the application server.
+
+<div class="h2">6.2 Pojo Install</div>
+The install procedure may be difficult if you don't have any Java
+experience. A simplified install procedure may be fixed in the future.
+This install assume that you have Java 1.6 installed.
+<ol>
+	<li>Unzip dist/jsocksproxy.zip into a prefered installation
+	directory. You should get a install structure like:<br />
+	<br />
+
+	<span class="sysfont"> /conf/example/jsocksproxy.xml<br />
+	/lib/jsocksproxy.jar<br />
+	/run.bat<br />
+	&nbsp; </span></li>
+	<li>You can move <span class="sysfont">/conf/example/jsocksproxy.xml</span>
+	into the root directory, if you don't
+	want to write your own configuration file.</li>
+	<li>Next step is to configure <a href="#jsocksproxy.xml">jsocksproxy.xml</a>, read more about
+	the settings under <a href="#configuration">configuration</a></li>
+
+	<li>You can now start the SOCKS proxy manually using the run.bat
+	in Windows. I have not supplied any java service wrappers, but there
+	are several freewares that you can use.<br />
+	The main class is <span class="sysfont">nu.najt.kecon.jsocksproxy.JSocksProxy</span><br />
+	<br />
+	Static start method: <span class="sysfont">nu.najt.kecon.jsocksproxy.JSocksProxy.startService()</span><br />
+	Static stop method: <span class="sysfont">nu.najt.kecon.jsocksproxy.JSocksProxy.stopService()</span></li>
+
+</ol>
+
+
+<div class="h1">7. Compile</div>
+You will need Java 6 SDK and Ant to build this project.
+<div class="h1">8. Changes</div>
+Documented changes.
+<div class="h2">8.1 Changes between 1.0 and 2.0</div>
+<ul>
+	<li>Replaced Log4J with Java's built-in logging.</li>
+	<li>Changed XML format and is now using JAXB.</li>
+	<li>Added graphical administration interface.</li>
+	<li>Added support for JBoss MBeans.</li>
+</ul>
+
+</body>
+</html>
