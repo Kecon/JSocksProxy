@@ -51,7 +51,7 @@ public abstract class AbstractSocksImplementation implements
 
 	private static final Executor executor = Executors.newCachedThreadPool();
 
-	private final CountDownLatch countDownLatch = new CountDownLatch(1);
+	protected final CountDownLatch countDownLatch = new CountDownLatch(1);
 
 	/**
 	 * Constructor
@@ -72,6 +72,7 @@ public abstract class AbstractSocksImplementation implements
 		executor.execute(this);
 	}
 
+	@Override
 	public void run() {
 		try {
 			this.jSocksProxy.getConnections().add(this);
@@ -171,8 +172,8 @@ public abstract class AbstractSocksImplementation implements
 		this.doTunnel(internal, external);
 
 		// Wait for the other thread to die
-		if (logger.isLoggable(Level.FINE)) {
-			logger.fine("Waiting to disconnect");
+		if (this.logger.isLoggable(Level.FINE)) {
+			this.logger.fine("Waiting to disconnect");
 		}
 
 		try {
@@ -199,7 +200,7 @@ public abstract class AbstractSocksImplementation implements
 	 * @param outputSocket
 	 *            the output socket
 	 */
-	private void doTunnel(final Socket inputSocket, final Socket outputSocket) {
+	protected void doTunnel(final Socket inputSocket, final Socket outputSocket) {
 
 		InputStream inputStream = null;
 		OutputStream outputStream = null;
@@ -264,11 +265,12 @@ public abstract class AbstractSocksImplementation implements
 			this.outputSocket = outputSocket;
 		}
 
+		@Override
 		public void run() {
 			AbstractSocksImplementation.this.doTunnel(this.inputSocket,
 					this.outputSocket);
 
-			countDownLatch.countDown();
+			AbstractSocksImplementation.this.countDownLatch.countDown();
 
 		}
 	}
@@ -277,14 +279,14 @@ public abstract class AbstractSocksImplementation implements
 	 * @return the socket
 	 */
 	protected Socket getSocket() {
-		return socket;
+		return this.socket;
 	}
 
 	protected InputStream getClientInputStream() throws IOException {
-		return socket.getInputStream();
+		return this.socket.getInputStream();
 	}
 
 	protected OutputStream getClientOutputStream() throws IOException {
-		return socket.getOutputStream();
+		return this.socket.getOutputStream();
 	}
 }

@@ -38,7 +38,7 @@ public enum AddressType {
 	}
 
 	public byte getValue() {
-		return value;
+		return this.value;
 	}
 
 	private static final Map<Byte, AddressType> map;

@@ -64,6 +64,7 @@ public class SocksImplementation4 extends AbstractSocksImplementation {
 		super(jSocksProxy, socket, staticLogger);
 	}
 
+	@Override
 	public void handle() {
 		DataInputStream inputStream = null;
 		DataOutputStream outputStream = null;
@@ -115,13 +116,13 @@ public class SocksImplementation4 extends AbstractSocksImplementation {
 
 			final Socket hostSocket;
 			try {
-				if (logger.isLoggable(Level.FINE)) {
-					logger.fine("Connecting to " + host + ":" + port + "...");
+				if (this.logger.isLoggable(Level.FINE)) {
+					this.logger.fine("Connecting to " + host + ":" + port + "...");
 				}
 				hostSocket = this.openConnection(inetAddress, port);
 
-				if (logger.isLoggable(Level.FINE)) {
-					logger.fine("Connected to " + host + ":" + port);
+				if (this.logger.isLoggable(Level.FINE)) {
+					this.logger.fine("Connected to " + host + ":" + port);
 				}
 			} catch (IOException e) {
 				this.logger
@@ -170,12 +171,16 @@ public class SocksImplementation4 extends AbstractSocksImplementation {
 					+ " failed to setup connection to " + host + ":" + port, e);
 		} finally {
 			try {
+			    if(null != inputStream) {
 				inputStream.close();
+			    }
 			} catch (Exception e) {
 			}
 
 			try {
+			    if(null != outputStream) {
 				outputStream.close();
+			    }
 			} catch (Exception e) {
 			}
 		}

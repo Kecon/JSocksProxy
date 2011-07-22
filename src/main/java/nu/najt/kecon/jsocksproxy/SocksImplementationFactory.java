@@ -53,25 +53,25 @@ public class SocksImplementationFactory {
 		case 0x04:
 			if (jSocksProxy.isAllowSocks4()) {
 				return new SocksImplementation4(jSocksProxy, socket);
-			} else {
-				try {
-					socket.close();
-				} catch (Exception e) {
-				}
-				throw new AccessDeniedException("SOCKS4 is not enabled");
 			}
+            		
+			try {
+            			socket.close();
+            		} catch (Exception e) {
+            		}
+            		throw new AccessDeniedException("SOCKS4 is not enabled");
 
 		case 0x05:
 			if (jSocksProxy.isAllowSocks5()) {
 				return new SocksImplementation5(jSocksProxy, socket);
-			} else {
-				try {
-					socket.close();
-				} catch (Exception e) {
-				}
-				throw new AccessDeniedException("SOCKS5 is not enabled");
 			}
-
+			
+			try {
+				socket.close();
+			} catch (Exception e) {
+			}
+			throw new AccessDeniedException("SOCKS5 is not enabled");
+			
 		default:
 			try {
 				socket.close();

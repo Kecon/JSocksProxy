@@ -57,29 +57,29 @@ import static nu.najt.kecon.jsocksproxy.utils.StringUtils.*;
  */
 public class JSocksProxy implements JSocksProxyMBean {
 
-	private static final String version = (JSocksProxy.class.getPackage()
+    	protected static final String version = (JSocksProxy.class.getPackage()
 			.getImplementationVersion() != null) ? JSocksProxy.class
 			.getPackage().getImplementationVersion() : "n/a";
 
-	private static final JSocksProxy singleton = new JSocksProxy();;
+	private static final JSocksProxy singleton = new JSocksProxy();
 
 	public static final String CONFIGURATION_XML = "jsocksproxy.xml";
 
-	private final Logger logger = Logger.getLogger(this.getClass().getName());
+	protected final Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private final List<InetSocketAddress> listeningAddresses = new ArrayList<InetSocketAddress>();
 
-	private final List<ListeningThread> listeningThreads = new ArrayList<ListeningThread>();
+	protected final List<ListeningThread> listeningThreads = new ArrayList<ListeningThread>();
 
 	private final Executor executor = Executors.newCachedThreadPool();
 
 	private List<InetAddress> outgoingSourceAddresses = null;
 
-	private int backlog = 100;
+	protected int backlog = 100;
 
 	private long configurationFileModified = -1;
 
-	private volatile boolean canRun = false;
+	protected volatile boolean canRun = false;
 
 	private Set<SocksImplementation> connections = Collections
 			.synchronizedSet(new HashSet<SocksImplementation>());
@@ -161,6 +161,7 @@ public class JSocksProxy implements JSocksProxyMBean {
 	/**
 	 * Start method
 	 */
+	@Override
 	public void start() {
 
 		class MainThread implements Runnable {
@@ -198,16 +199,17 @@ public class JSocksProxy implements JSocksProxyMBean {
 					JSocksProxy.this.listeningThreads.clear();
 				}
 
-				logger.info("Shutdown SOCKS Proxy");
+				JSocksProxy.this.logger.info("Shutdown SOCKS Proxy");
 			}
 		}
 
-		executor.execute(new MainThread());
+		this.executor.execute(new MainThread());
 	}
 
 	/**
 	 * Stop method
 	 */
+	@Override
 	public void stop() {
 
 		synchronized (this) {
@@ -223,9 +225,9 @@ public class JSocksProxy implements JSocksProxyMBean {
 	 * 
 	 * @throws NamingException
 	 */
-	private void rebind() throws NamingException {
+	protected void rebind() throws NamingException {
 		InitialContext rootCtx = new InitialContext();
-		Name name = rootCtx.getNameParser("").parse(jndiName);
+		Name name = rootCtx.getNameParser("").parse(this.jndiName);
 
 		rootCtx.rebind(name, this.contextMap);
 	}
@@ -299,7 +301,7 @@ public class JSocksProxy implements JSocksProxyMBean {
 
 		private volatile boolean mayRun = true;
 
-		private final InetSocketAddress inetSocketAddress;
+		protected final InetSocketAddress inetSocketAddress;
 
 		private final ServerSocket serverSocket;
 
@@ -319,17 +321,18 @@ public class JSocksProxy implements JSocksProxyMBean {
 							+ formatSocketAddress(inetSocketAddress));
 
 			this.serverSocket = ServerSocketFactory.getDefault()
-					.createServerSocket(inetSocketAddress.getPort(), backlog,
+					.createServerSocket(inetSocketAddress.getPort(), JSocksProxy.this.backlog,
 							inetSocketAddress.getAddress());
 		}
 
+		@Override
 		public void run() {
 			try {
 
 				Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 
 				Socket socket;
-				while (mayRun && (socket = this.serverSocket.accept()) != null) {
+				while (this.mayRun && (socket = this.serverSocket.accept()) != null) {
 					socket.setTcpNoDelay(true);
 					socket.setKeepAlive(true);
 
@@ -427,7 +430,7 @@ public class JSocksProxy implements JSocksProxyMBean {
 					.newInstance(Configuration.class);
 			final Unmarshaller unmarshaller = context.createUnmarshaller();
 
-			configuration = (Configuration) unmarshaller.unmarshal(file);
+			this.configuration = (Configuration) unmarshaller.unmarshal(file);
 
 		} catch (JAXBException e) {
 			this.logger.log(Level.WARNING, "Failed to read configuration", e);
@@ -436,7 +439,7 @@ public class JSocksProxy implements JSocksProxyMBean {
 
 		this.configurationFileModified = file.lastModified();
 
-		if (configuration == null) {
+		if (this.configuration == null) {
 			this.logger.warning("No configuration read from "
 					+ CONFIGURATION_XML);
 			return;
@@ -444,12 +447,12 @@ public class JSocksProxy implements JSocksProxyMBean {
 
 		this.listeningAddresses.clear();
 
-		if (configuration.getOutgoingAddresses() != null
-				&& !configuration.getOutgoingAddresses().isEmpty()) {
+		if (this.configuration.getOutgoingAddresses() != null
+				&& !this.configuration.getOutgoingAddresses().isEmpty()) {
 
 			final Set<InetAddress> outgoingAddresses = new HashSet<InetAddress>();
 
-			for (final String address : configuration.getOutgoingAddresses()) {
+			for (final String address : this.configuration.getOutgoingAddresses()) {
 				try {
 
 					outgoingAddresses.addAll(Arrays.asList(InetAddress
@@ -488,7 +491,7 @@ public class JSocksProxy implements JSocksProxyMBean {
 		this.logger.config("Using outgoing source addresses: " + builder);
 		this.logger.info("Using outgoing source addresses: " + builder);
 
-		for (final Listen listen : configuration.getListen()) {
+		for (final Listen listen : this.configuration.getListen()) {
 
 			int port = -1;
 			InetAddress address = null;
@@ -522,14 +525,14 @@ public class JSocksProxy implements JSocksProxyMBean {
 			}
 		}
 
-		if (configuration.getBacklog() <= 0 || configuration.getBacklog() > 100) {
+		if (this.configuration.getBacklog() <= 0 || this.configuration.getBacklog() > 100) {
 			this.logger
 					.config("Backlog value must be between 0 and 101; supplied value: "
-							+ configuration.getBacklog()
+							+ this.configuration.getBacklog()
 							+ "; using default 100");
 			this.backlog = 100;
 		} else {
-			this.backlog = configuration.getBacklog();
+			this.backlog = this.configuration.getBacklog();
 			this.logger.config("Using backlog " + this.backlog);
 		}
 	}
@@ -545,7 +548,7 @@ public class JSocksProxy implements JSocksProxyMBean {
 	 * @return the connections
 	 */
 	public Set<SocksImplementation> getConnections() {
-		return connections;
+		return this.connections;
 	}
 
 	/**

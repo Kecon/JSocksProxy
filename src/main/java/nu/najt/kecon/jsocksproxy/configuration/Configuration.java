@@ -43,7 +43,7 @@ public class Configuration {
 	 * @return the backlog
 	 */
 	public int getBacklog() {
-		return backlog;
+		return this.backlog;
 	}
 
 	/**
@@ -59,7 +59,7 @@ public class Configuration {
 	 */
 	@XmlElement(name = "outgoingAddress")
 	public List<String> getOutgoingAddresses() {
-		return outgoingAddresses;
+		return this.outgoingAddresses;
 	}
 
 	/**
@@ -74,7 +74,7 @@ public class Configuration {
 	 * @return the listen
 	 */
 	public List<Listen> getListen() {
-		return listen;
+		return this.listen;
 	}
 
 	/**
@@ -90,7 +90,7 @@ public class Configuration {
 	 */
 	@XmlElement(defaultValue = "true")
 	public boolean isAllowSocks4() {
-		return allowSocks4;
+		return this.allowSocks4;
 	}
 
 	/**
@@ -106,7 +106,7 @@ public class Configuration {
 	 */
 	@XmlElement(defaultValue = "true")
 	public boolean isAllowSocks5() {
-		return allowSocks5;
+		return this.allowSocks5;
 	}
 
 	/**

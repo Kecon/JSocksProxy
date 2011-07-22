@@ -32,7 +32,7 @@ public class Listen {
      * @return the address
      */
     public String getAddress() {
-	return address;
+	return this.address;
     }
 
     /**
@@ -48,7 +48,7 @@ public class Listen {
      */
     @XmlElement(defaultValue = "1080")
     public int getPort() {
-	return port;
+	return this.port;
     }
 
     /**

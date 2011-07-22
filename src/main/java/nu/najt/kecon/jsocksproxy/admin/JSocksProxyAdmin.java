@@ -47,6 +47,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
+import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileFilter;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -134,7 +135,7 @@ public final class JSocksProxyAdmin extends JFrame implements ActionListener,
 		this.addListenButton.addActionListener(this);
 		this.removeListenButton.addActionListener(this);
 
-		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		this.setState(Frame.NORMAL | Frame.MAXIMIZED_BOTH);
 
 		this.updateComponents(this.getLocale());
@@ -190,50 +191,50 @@ public final class JSocksProxyAdmin extends JFrame implements ActionListener,
 						this.listenPortLabel });
 
 		final int listenTabRowHeight = this.getMaxSizeY(new JComponent[] {
-				listenAddressLabel, listenAddressTextField, addListenButton });
+				this.listenAddressLabel, this.listenAddressTextField, this.addListenButton });
 
 		setComponentPosition(listenTab, listenTabLayout, PADDING_LEFT,
 				getPosistion(PADDING_TOP, listenTabRowHeight, 0),
-				listenAddressLabel);
+				this.listenAddressLabel);
 		setComponentPosition(listenTab, listenTabLayout, listenTabTextFieldX,
 				getPosistion(PADDING_TOP, listenTabRowHeight, 0),
-				listenAddressTextField);
+				this.listenAddressTextField);
 
 		setComponentPosition(listenTab, listenTabLayout, PADDING_LEFT,
 				getPosistion(PADDING_TOP, listenTabRowHeight, 1),
-				listenPortLabel);
+				this.listenPortLabel);
 		setComponentPosition(listenTab, listenTabLayout, listenTabTextFieldX,
 				getPosistion(PADDING_TOP, listenTabRowHeight, 1),
-				listenPortTextField);
+				this.listenPortTextField);
 
 		final int listenButtonWidth = this.getMaxSizeX(new JComponent[] {
-				addListenButton, removeListenButton });
+				this.addListenButton, this.removeListenButton });
 
 		final int listenPaneSizeX = PANE_SIZE_X
 				- (PADDING_LEFT * 3 + PADDING_RIGHT + listenButtonWidth);
 		final int listenPaneSizeY = PANE_SIZE_Y
 				- (getPosistion(PADDING_TOP, listenTabRowHeight, 3) + PADDING_BOTTOM);
 
-		final JScrollPane listenPane = new JScrollPane(listenList);
+		final JScrollPane listenPane = new JScrollPane(this.listenList);
 		listenPane.setPreferredSize(new Dimension(listenPaneSizeX,
 				listenPaneSizeY));
 
 		setComponentPosition(listenTab, listenTabLayout, PADDING_LEFT,
 				getPosistion(PADDING_TOP, listenTabRowHeight, 2), listenPane);
 
-		addListenButton.setPreferredSize(new Dimension(listenButtonWidth,
+		this.addListenButton.setPreferredSize(new Dimension(listenButtonWidth,
 				listenTabRowHeight));
 		setComponentPosition(listenTab, listenTabLayout, PADDING_LEFT * 2
 				+ listenPaneSizeX,
 				getPosistion(PADDING_TOP, listenTabRowHeight, 1),
-				addListenButton);
+				this.addListenButton);
 
-		removeListenButton.setPreferredSize(new Dimension(listenButtonWidth,
+		this.removeListenButton.setPreferredSize(new Dimension(listenButtonWidth,
 				listenTabRowHeight));
 		setComponentPosition(listenTab, listenTabLayout, PADDING_LEFT * 2
 				+ listenPaneSizeX,
 				getPosistion(PADDING_TOP, listenTabRowHeight, 2),
-				removeListenButton);
+				this.removeListenButton);
 
 		// Outgoing
 		final SpringLayout outgoingTabLayout = new SpringLayout();
@@ -244,9 +245,9 @@ public final class JSocksProxyAdmin extends JFrame implements ActionListener,
 				+ this.getMaxSizeX(new JComponent[] { this.outgoingAddressLabel });
 
 		setComponentPosition(outgoingTab, outgoingTabLayout, PADDING_LEFT,
-				PADDING_TOP, outgoingAddressLabel);
+				PADDING_TOP, this.outgoingAddressLabel);
 		setComponentPosition(outgoingTab, outgoingTabLayout,
-				outgoingTabTextFieldX, PADDING_TOP, outgoingAddressTextField);
+				outgoingTabTextFieldX, PADDING_TOP, this.outgoingAddressTextField);
 
 		// Advanced
 		final SpringLayout advancedTabLayout = new SpringLayout();
@@ -256,35 +257,35 @@ public final class JSocksProxyAdmin extends JFrame implements ActionListener,
 				+ this.getMaxSizeX(new JComponent[] { this.backlogLabel });
 
 		final int advancedTabRowHeight = this.getMaxSizeY(new JComponent[] {
-				backlogLabel, backlogTextField, allowSocks4Checkbox,
-				allowSocks4Label, allowSocks5Checkbox, allowSocks5Label });
+				this.backlogLabel, this.backlogTextField, this.allowSocks4Checkbox,
+				this.allowSocks4Label, this.allowSocks5Checkbox, this.allowSocks5Label });
 
 		setComponentPosition(advancedTab, advancedTabLayout, PADDING_LEFT,
 				getPosistion(PADDING_TOP, advancedTabRowHeight, 0),
-				backlogLabel);
+				this.backlogLabel);
 
 		setComponentPosition(advancedTab, advancedTabLayout,
 				advancedTabTextFieldX,
 				getPosistion(PADDING_TOP, advancedTabRowHeight, 0),
-				backlogTextField);
+				this.backlogTextField);
 
 		setComponentPosition(advancedTab, advancedTabLayout, PADDING_LEFT,
 				getPosistion(PADDING_TOP, advancedTabRowHeight, 1),
-				allowSocks4Label);
+				this.allowSocks4Label);
 
 		setComponentPosition(advancedTab, advancedTabLayout,
 				advancedTabTextFieldX,
 				getPosistion(PADDING_TOP, advancedTabRowHeight, 1),
-				allowSocks4Checkbox);
+				this.allowSocks4Checkbox);
 
 		setComponentPosition(advancedTab, advancedTabLayout, PADDING_LEFT,
 				getPosistion(PADDING_TOP, advancedTabRowHeight, 2),
-				allowSocks5Label);
+				this.allowSocks5Label);
 
 		setComponentPosition(advancedTab, advancedTabLayout,
 				advancedTabTextFieldX,
 				getPosistion(PADDING_TOP, advancedTabRowHeight, 2),
-				allowSocks5Checkbox);
+				this.allowSocks5Checkbox);
 
 		// OK and Cancel buttons
 		final JPanel buttonPanel = new JPanel();

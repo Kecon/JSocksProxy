@@ -35,7 +35,7 @@ public enum Command {
 	}
 
 	public byte getValue() {
-		return value;
+		return this.value;
 	}
 
 	private static final Map<Byte, Command> map;
