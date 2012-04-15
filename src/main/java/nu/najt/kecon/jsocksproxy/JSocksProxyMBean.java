@@ -1,5 +1,5 @@
 /**
- * JSocksProxy Copyright (c) 2006-2011 Kenny Colliander Nordin
+ * JSocksProxy Copyright (c) 2006-2012 Kenny Colliander Nordin
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,47 +25,47 @@ import javax.naming.NamingException;
  */
 public interface JSocksProxyMBean {
 
-    /**
-     * @return the jndiName
-     */
-    public String getJndiName();
+	/**
+	 * @return the jndiName
+	 */
+	public String getJndiName();
 
-    /**
-     * Sets the jndiName
-     * 
-     * @param jndiName
-     *                the jndiName
-     * @throws NamingException
-     */
-    public void setJndiName(String jndiName) throws NamingException;
+	/**
+	 * Sets the jndiName
+	 * 
+	 * @param jndiName
+	 *            the jndiName
+	 * @throws NamingException
+	 */
+	public void setJndiName(String jndiName) throws NamingException;
 
-    /**
-     * Sets property key for the configuration base path
-     * 
-     * @param configurationBasePathPropertyKey
-     *                the configuration base path property key
-     */
-    public void setConfigurationBasePathPropertyKey(
-	    String configurationBasePathPropertyKey);
+	/**
+	 * Sets property key for the configuration base path
+	 * 
+	 * @param configurationBasePathPropertyKey
+	 *            the configuration base path property key
+	 */
+	public void setConfigurationBasePathPropertyKey(
+			String configurationBasePathPropertyKey);
 
-    /**
-     * 
-     * @return the configuration base path property key
-     */
-    public String getConfigurationBasePathPropertyKey();
+	/**
+	 * 
+	 * @return the configuration base path property key
+	 */
+	public String getConfigurationBasePathPropertyKey();
 
-    /**
-     * Start the service
-     * 
-     * @throws Exception
-     */
-    public void start();
+	/**
+	 * Start the service
+	 * 
+	 * @throws Exception
+	 */
+	public void start();
 
-    /**
-     * Stop the service
-     * 
-     * @throws Exception
-     */
-    public void stop();
+	/**
+	 * Stop the service
+	 * 
+	 * @throws Exception
+	 */
+	public void stop();
 
 }
