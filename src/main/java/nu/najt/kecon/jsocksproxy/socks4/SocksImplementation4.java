@@ -1,5 +1,5 @@
 /**
- * JSocksProxy Copyright (c) 2006-2011 Kenny Colliander Nordin
+ * JSocksProxy Copyright (c) 2006-2012 Kenny Colliander Nordin
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,13 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.util.concurrent.Executor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import nu.najt.kecon.jsocksproxy.AbstractSocksImplementation;
+import nu.najt.kecon.jsocksproxy.ConfigurationFacade;
 import nu.najt.kecon.jsocksproxy.IllegalCommandException;
-import nu.najt.kecon.jsocksproxy.JSocksProxy;
 
 /**
  * This is the SOCKS4 implementation. <br>
@@ -54,24 +55,29 @@ public class SocksImplementation4 extends AbstractSocksImplementation {
 	/**
 	 * Constructor
 	 * 
-	 * @param jSocksProxy
-	 *            the parent instance
+	 * @param configurationFacade
+	 *            the configuration facade
 	 * @param socket
 	 *            the socket
+	 * @param executor
+	 *            the executor
 	 */
-	public SocksImplementation4(final JSocksProxy jSocksProxy,
-			final Socket socket) {
-		super(jSocksProxy, socket, staticLogger);
+	public SocksImplementation4(final ConfigurationFacade configurationFacade,
+			final Socket socket, final Executor executor) {
+		super(configurationFacade, socket, SocksImplementation4.staticLogger,
+				executor);
 	}
 
-	public void handle() {
+	@Override
+	public void run() {
 		DataInputStream inputStream = null;
 		DataOutputStream outputStream = null;
 		String host = null;
 		int port = -1;
 		try {
-			inputStream = new DataInputStream(this.getSocket().getInputStream());
-			outputStream = new DataOutputStream(this.getSocket()
+			inputStream = new DataInputStream(this.getClientSocket()
+					.getInputStream());
+			outputStream = new DataOutputStream(this.getClientSocket()
 					.getOutputStream());
 
 			final Command command = Command.valueOf(inputStream.readByte());
@@ -92,17 +98,17 @@ public class SocksImplementation4 extends AbstractSocksImplementation {
 
 			int length;
 			while ((length = inputStream.read(buf)) >= 0) {
-				if (length > 0 && buf[0] == 0) {
+				if ((length > 0) && (buf[0] == 0)) {
 					break;
 				}
 			}
 
 			// SOCKS4a extension
-			if (rawIp[0] == 0 && rawIp[1] == 0 && rawIp[2] == 0
-					&& rawIp[3] != 0) {
+			if ((rawIp[0] == 0) && (rawIp[1] == 0) && (rawIp[2] == 0)
+					&& (rawIp[3] != 0)) {
 				final StringBuilder builder = new StringBuilder();
 				while ((length = inputStream.read(buf)) >= 0) {
-					if (length > 0 && buf[0] == 0) {
+					if ((length > 0) && (buf[0] == 0)) {
 						break;
 					}
 					builder.append(buf);
@@ -115,28 +121,34 @@ public class SocksImplementation4 extends AbstractSocksImplementation {
 
 			final Socket hostSocket;
 			try {
-				if (logger.isLoggable(Level.FINE)) {
-					logger.fine("Connecting to " + host + ":" + port + "...");
+				if (this.logger.isLoggable(Level.FINE)) {
+					this.logger.fine("Connecting to " + host + ":" + port
+							+ "...");
 				}
 				hostSocket = this.openConnection(inetAddress, port);
 
-				if (logger.isLoggable(Level.FINE)) {
-					logger.fine("Connected to " + host + ":" + port);
+				if (this.logger.isLoggable(Level.FINE)) {
+					this.logger.fine("Connected to " + host + ":" + port);
 				}
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				this.logger
 						.info("Client "
-								+ this.getSocket().getInetAddress()
-										.getHostAddress() + ":"
-								+ this.getSocket().getPort()
-								+ " failed to connected to " + host + ":"
-								+ port + ", result 0x"
-								+ Integer.toHexString(REQUEST_REJECTED));
+								+ this.getClientSocket().getInetAddress()
+										.getHostAddress()
+								+ ":"
+								+ this.getClientSocket().getPort()
+								+ " failed to connected to "
+								+ host
+								+ ":"
+								+ port
+								+ ", result 0x"
+								+ Integer
+										.toHexString(SocksImplementation4.REQUEST_REJECTED));
 
 				final ByteBuffer response = ByteBuffer.allocate(8);
 
-				response.put(NULL);
-				response.put(REQUEST_REJECTED);
+				response.put(SocksImplementation4.NULL);
+				response.put(SocksImplementation4.REQUEST_REJECTED);
 				response.putShort((short) port);
 				response.put(rawIp);
 
@@ -147,8 +159,8 @@ public class SocksImplementation4 extends AbstractSocksImplementation {
 
 			final ByteBuffer response = ByteBuffer.allocate(8);
 
-			response.put(NULL);
-			response.put(REQUEST_GRANTED);
+			response.put(SocksImplementation4.NULL);
+			response.put(SocksImplementation4.REQUEST_GRANTED);
 			response.putShort((short) port);
 			response.put(hostSocket.getInetAddress().getAddress());
 
@@ -156,27 +168,27 @@ public class SocksImplementation4 extends AbstractSocksImplementation {
 			outputStream.flush();
 
 			this.logger.info("Established connection between "
-					+ this.getSocket().getInetAddress().getHostAddress() + ":"
-					+ this.getSocket().getPort() + " and "
+					+ this.getClientSocket().getInetAddress().getHostAddress()
+					+ ":" + this.getClientSocket().getPort() + " and "
 					+ hostSocket.getInetAddress().getHostAddress() + ":"
 					+ hostSocket.getPort());
 
-			this.tunnel(this.getSocket(), hostSocket);
+			this.tunnel(this.getClientSocket(), hostSocket);
 
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			this.logger.log(Level.WARNING, "Client "
-					+ this.getSocket().getInetAddress().getHostAddress() + ":"
-					+ this.getSocket().getPort()
+					+ this.getClientSocket().getInetAddress().getHostAddress()
+					+ ":" + this.getClientSocket().getPort()
 					+ " failed to setup connection to " + host + ":" + port, e);
 		} finally {
 			try {
 				inputStream.close();
-			} catch (Exception e) {
+			} catch (final Exception e) {
 			}
 
 			try {
 				outputStream.close();
-			} catch (Exception e) {
+			} catch (final Exception e) {
 			}
 		}
 	}
