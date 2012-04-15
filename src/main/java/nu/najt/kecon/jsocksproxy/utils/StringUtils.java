@@ -1,5 +1,5 @@
 /**
- * JSocksProxy Copyright (c) 2006-2011 Kenny Colliander Nordin
+ * JSocksProxy Copyright (c) 2006-2012 Kenny Colliander Nordin
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,11 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+/**
+ * String utilities
+ * 
+ * @author Kenny Colliander Nordin
+ */
 public class StringUtils {
 	/**
 	 * Create a string representation of a {@link InetSocketAddress}
