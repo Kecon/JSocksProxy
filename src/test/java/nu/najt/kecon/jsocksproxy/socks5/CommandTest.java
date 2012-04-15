@@ -1,5 +1,5 @@
 /**
- * JSocksProxy Copyright (c) 2006-2011 Kenny Colliander Nordin
+ * JSocksProxy Copyright (c) 2006-2012 Kenny Colliander Nordin
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,9 @@
  */
 package nu.najt.kecon.jsocksproxy.socks5;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 import nu.najt.kecon.jsocksproxy.IllegalCommandException;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 public class CommandTest {
@@ -27,23 +26,24 @@ public class CommandTest {
 	public void testValueOf() {
 
 		try {
-			assertEquals(Command.CONNECT, Command.valueOf((byte) 0x01));
-			assertEquals(Command.BIND, Command.valueOf((byte) 0x02));
-			assertEquals(Command.UDP_ASSOCIATE, Command.valueOf((byte) 0x03));
-		} catch (IllegalCommandException e) {
-			fail();
+			Assert.assertEquals(Command.CONNECT, Command.valueOf((byte) 0x01));
+			Assert.assertEquals(Command.BIND, Command.valueOf((byte) 0x02));
+			Assert.assertEquals(Command.UDP_ASSOCIATE,
+					Command.valueOf((byte) 0x03));
+		} catch (final IllegalCommandException e) {
+			Assert.fail();
 		}
 
 		try {
 			Command.valueOf((byte) 0x00);
-			fail();
-		} catch (IllegalCommandException e) {
+			Assert.fail();
+		} catch (final IllegalCommandException e) {
 		}
 	}
 
 	public void testGetValue() {
-		assertEquals(0x01, Command.CONNECT.getValue());
-		assertEquals(0x02, Command.BIND.getValue());
-		assertEquals(0x03, Command.UDP_ASSOCIATE.getValue());
+		Assert.assertEquals(0x01, Command.CONNECT.getValue());
+		Assert.assertEquals(0x02, Command.BIND.getValue());
+		Assert.assertEquals(0x03, Command.UDP_ASSOCIATE.getValue());
 	}
 }

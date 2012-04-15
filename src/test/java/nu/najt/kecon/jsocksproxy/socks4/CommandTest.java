@@ -13,26 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nu.najt.kecon.jsocksproxy.socks5;
+package nu.najt.kecon.jsocksproxy.socks4;
+
+import nu.najt.kecon.jsocksproxy.IllegalCommandException;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-public class StatusTest {
+public class CommandTest {
 
 	@Test
-	public void testGetValue() {
-		Assert.assertEquals(0x00, Status.SUCCEEDED.getValue());
-		Assert.assertEquals(0x01,
-				Status.GENERAL_SOCKS_SERVER_FAILURE.getValue());
-		Assert.assertEquals(0x02,
-				Status.CONNECTION_NOT_ALLOWED_BY_RULESET.getValue());
-		Assert.assertEquals(0x03, Status.NETWORK_UNREACHABLE.getValue());
-		Assert.assertEquals(0x04, Status.HOST_UNREACHABLE.getValue());
-		Assert.assertEquals(0x05,
-				Status.CONNECTION_REFUSED_BY_DESTINATION_HOST.getValue());
-		Assert.assertEquals(0x06, Status.TTL_EXPIRED.getValue());
-		Assert.assertEquals(0x07, Status.COMMAND_NOT_SUPPORTED.getValue());
+	public void testValueOf() {
+
+		try {
+			Assert.assertEquals(Command.CONNECT, Command.valueOf((byte) 0x01));
+			Assert.assertEquals(Command.BIND, Command.valueOf((byte) 0x02));
+		} catch (final IllegalCommandException e) {
+			Assert.fail();
+		}
+
+		try {
+			Command.valueOf((byte) 0x00);
+			Assert.fail();
+		} catch (final IllegalCommandException e) {
+		}
 	}
 
+	public void testGetValue() {
+		Assert.assertEquals(0x01, Command.CONNECT.getValue());
+		Assert.assertEquals(0x02, Command.BIND.getValue());
+	}
 }

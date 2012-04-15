@@ -1,5 +1,5 @@
 /**
- * JSocksProxy Copyright (c) 2006-2011 Kenny Colliander Nordin
+ * JSocksProxy Copyright (c) 2006-2012 Kenny Colliander Nordin
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,9 @@
  */
 package nu.najt.kecon.jsocksproxy.socks5;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 import nu.najt.kecon.jsocksproxy.IllegalAddressTypeException;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 public class AddressTypeTest {
@@ -27,22 +26,25 @@ public class AddressTypeTest {
 	public void testValueOf() {
 
 		try {
-			assertEquals(AddressType.IP_V4, AddressType.valueOf((byte) 0x01));
-			assertEquals(AddressType.DOMAIN, AddressType.valueOf((byte) 0x03));
-			assertEquals(AddressType.IP_V6, AddressType.valueOf((byte) 0x04));
-		} catch (IllegalAddressTypeException e) {
-			fail();
+			Assert.assertEquals(AddressType.IP_V4,
+					AddressType.valueOf((byte) 0x01));
+			Assert.assertEquals(AddressType.DOMAIN,
+					AddressType.valueOf((byte) 0x03));
+			Assert.assertEquals(AddressType.IP_V6,
+					AddressType.valueOf((byte) 0x04));
+		} catch (final IllegalAddressTypeException e) {
+			Assert.fail();
 		}
 		try {
 			AddressType.valueOf((byte) 0x00);
-			fail();
-		} catch (IllegalAddressTypeException e) {
+			Assert.fail();
+		} catch (final IllegalAddressTypeException e) {
 		}
 	}
 
 	public void testGetValue() {
-		assertEquals(0x01, AddressType.IP_V4.getValue());
-		assertEquals(0x03, AddressType.DOMAIN.getValue());
-		assertEquals(0x04, AddressType.IP_V6.getValue());
+		Assert.assertEquals(0x01, AddressType.IP_V4.getValue());
+		Assert.assertEquals(0x03, AddressType.DOMAIN.getValue());
+		Assert.assertEquals(0x04, AddressType.IP_V6.getValue());
 	}
 }
