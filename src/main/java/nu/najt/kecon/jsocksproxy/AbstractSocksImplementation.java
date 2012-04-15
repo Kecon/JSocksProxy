@@ -1,5 +1,5 @@
 /**
- * JSocksProxy Copyright (c) 2006-2011 Kenny Colliander Nordin
+ * JSocksProxy Copyright (c) 2006-2012 Kenny Colliander Nordin
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,19 @@
  */
 package nu.najt.kecon.jsocksproxy;
 
-import static nu.najt.kecon.jsocksproxy.utils.StringUtils.*;
-
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import nu.najt.kecon.jsocksproxy.utils.SocketUtils;
+import nu.najt.kecon.jsocksproxy.utils.StringUtils;
 
 /**
  * The common implementation of the SOCKS protocol.
@@ -37,49 +36,38 @@ import java.util.logging.Logger;
  * 
  */
 public abstract class AbstractSocksImplementation implements
-		SocksImplementation, Runnable {
+		SocksImplementation {
 
 	private static final int BIND_SOCKET_TIMEOUT = 180000;
 
-	private final Socket socket;
+	private final Socket clientSocket;
 
-	private final JSocksProxy jSocksProxy;
-
-	private volatile boolean shutdown = false;
+	private final ConfigurationFacade configurationFacade;
 
 	protected final Logger logger;
 
-	private static final Executor executor = Executors.newCachedThreadPool();
+	private final Executor executor;
 
 	private final CountDownLatch countDownLatch = new CountDownLatch(1);
 
 	/**
 	 * Constructor
 	 * 
-	 * @param jSocksProxy
-	 *            the socks proxy
-	 * @param socket
-	 *            the socket
+	 * @param configurationFacade
+	 *            the configuration facade
+	 * @param clientSocket
+	 *            the clientSocket
 	 * @param logger
 	 *            the logger
 	 */
-	public AbstractSocksImplementation(final JSocksProxy jSocksProxy,
-			final Socket socket, final Logger logger) {
-		this.socket = socket;
-		this.jSocksProxy = jSocksProxy;
+	public AbstractSocksImplementation(
+			final ConfigurationFacade configurationFacade,
+			final Socket clientSocket, final Logger logger,
+			final Executor executor) {
+		this.clientSocket = clientSocket;
+		this.configurationFacade = configurationFacade;
 		this.logger = logger;
-
-		executor.execute(this);
-	}
-
-	public void run() {
-		try {
-			this.jSocksProxy.getConnections().add(this);
-			this.handle();
-		} finally {
-			this.jSocksProxy.getConnections().remove(
-					AbstractSocksImplementation.this);
-		}
+		this.executor = executor;
 	}
 
 	/**
@@ -95,7 +83,7 @@ public abstract class AbstractSocksImplementation implements
 	protected Socket openConnection(final InetAddress inetAddress,
 			final int port) throws IOException {
 
-		for (final InetAddress localInetAddress : this.jSocksProxy
+		for (final InetAddress localInetAddress : this.configurationFacade
 				.getOutgoingSourceAddresses()) {
 			if (localInetAddress.getClass() == inetAddress.getClass()) {
 				final Socket socket = new Socket(inetAddress, port,
@@ -110,47 +98,61 @@ public abstract class AbstractSocksImplementation implements
 		throw new IOException("No route to address found using local addresses");
 	}
 
+	/**
+	 * Bind to connection
+	 * 
+	 * @param inetAddress
+	 * @param suggestedPort
+	 * @return
+	 * @throws IOException
+	 */
 	protected ServerSocket bindConnection(final InetAddress inetAddress,
 			final int suggestedPort) throws IOException {
-		for (final InetAddress localInetAddress : this.jSocksProxy
+		for (final InetAddress localInetAddress : this.configurationFacade
 				.getOutgoingSourceAddresses()) {
 
 			if (localInetAddress.equals(inetAddress)) {
 				final ServerSocket serverSocket = new ServerSocket(
 						suggestedPort, 1, inetAddress);
 
-				this.logger.info("Bound socket " + formatSocket(serverSocket)
-						+ " for " + formatSocket(this.getSocket()));
+				this.logger.info("Bound clientSocket "
+						+ StringUtils.formatSocket(serverSocket) + " for "
+						+ StringUtils.formatSocket(this.getClientSocket()));
 
-				serverSocket.setSoTimeout(BIND_SOCKET_TIMEOUT);
+				serverSocket
+						.setSoTimeout(AbstractSocksImplementation.BIND_SOCKET_TIMEOUT);
 
 				return serverSocket;
 			}
 		}
 
-		for (final InetAddress localInetAddress : this.jSocksProxy
+		for (final InetAddress localInetAddress : this.configurationFacade
 				.getOutgoingSourceAddresses()) {
 
 			if (localInetAddress.getClass() == inetAddress.getClass()) {
 				final ServerSocket serverSocket = new ServerSocket(
 						suggestedPort, 1, localInetAddress);
 
-				this.logger.info("Bound socket " + formatSocket(serverSocket)
-						+ " for " + formatSocket(this.getSocket()));
+				this.logger.info("Bound clientSocket "
+						+ StringUtils.formatSocket(serverSocket) + " for "
+						+ StringUtils.formatSocket(this.getClientSocket()));
 
-				serverSocket.setSoTimeout(BIND_SOCKET_TIMEOUT);
+				serverSocket
+						.setSoTimeout(AbstractSocksImplementation.BIND_SOCKET_TIMEOUT);
 
 				return serverSocket;
 			}
 		}
 
 		final ServerSocket serverSocket = new ServerSocket(suggestedPort, 1,
-				this.jSocksProxy.getOutgoingSourceAddresses().get(0));
+				this.configurationFacade.getOutgoingSourceAddresses().get(0));
 
-		this.logger.info("Bound socket " + formatSocket(serverSocket) + " for "
-				+ formatSocket(this.getSocket()));
+		this.logger.info("Bound clientSocket "
+				+ StringUtils.formatSocket(serverSocket) + " for "
+				+ StringUtils.formatSocket(this.getClientSocket()));
 
-		serverSocket.setSoTimeout(BIND_SOCKET_TIMEOUT);
+		serverSocket
+				.setSoTimeout(AbstractSocksImplementation.BIND_SOCKET_TIMEOUT);
 
 		return serverSocket;
 	}
@@ -163,82 +165,46 @@ public abstract class AbstractSocksImplementation implements
 	 */
 	protected void tunnel(final Socket internal, final Socket external) {
 
-		this.logger.info("Established tunnel between " + formatSocket(internal)
-				+ " and " + formatSocket(external));
+		this.logger.info("Established tunnel between "
+				+ StringUtils.formatSocket(internal) + " and "
+				+ StringUtils.formatSocket(external));
 
-		executor.execute(new TunnelThread(external, internal));
-
-		this.doTunnel(internal, external);
-
-		// Wait for the other thread to die
-		if (logger.isLoggable(Level.FINE)) {
-			logger.fine("Waiting to disconnect");
-		}
+		this.executor.execute(new TunnelThread(external, internal));
 
 		try {
-			this.countDownLatch.await();
-		} catch (InterruptedException e) {
-		}
+			SocketUtils.copy(internal, external);
 
-		try {
-			external.close();
-		} catch (IOException e) {
-		}
-		try {
-			internal.close();
-		} catch (IOException e) {
-		}
-
-		this.logger.info("Shutdown connection between "
-				+ formatSocket(internal) + " and " + formatSocket(external));
-	}
-
-	/**
-	 * @param inputSocket
-	 *            the input socket
-	 * @param outputSocket
-	 *            the output socket
-	 */
-	private void doTunnel(final Socket inputSocket, final Socket outputSocket) {
-
-		InputStream inputStream = null;
-		OutputStream outputStream = null;
-		try {
-			inputStream = inputSocket.getInputStream();
-			outputStream = outputSocket.getOutputStream();
-
-			final byte buf[] = new byte[3000];
-			int length;
-			while (true) {
-				try {
-					length = inputStream.read(buf);
-
-					if (length > 0) {
-						outputStream.write(buf, 0, length);
-						outputStream.flush();
-					} else if (length == -1) {
-						break;
-					}
-				} catch (InterruptedIOException ioe) {
-				}
+			// Wait for the other thread to die
+			if (this.logger.isLoggable(Level.FINE)) {
+				this.logger.fine("Waiting to disconnect");
 			}
-		} catch (Exception e) {
-			if (!this.shutdown) {
-				this.logger.log(Level.WARNING,
-						"Unexpected exception when tunneling; input: "
-								+ formatSocket(inputSocket) + ", output: "
-								+ formatSocket(outputSocket) + ".", e);
+
+		} catch (final IOException ioe) {
+			if (this.logger.isLoggable(Level.FINE)) {
+				this.logger.log(Level.FINE, "IOException occurred between "
+						+ StringUtils.formatSocket(internal) + " and "
+						+ StringUtils.formatSocket(external), ioe);
 			}
 		} finally {
-			this.shutdown = true;
+
 			try {
-				inputSocket.shutdownInput();
-			} catch (Exception e) {
+				this.countDownLatch.await();
+			} catch (final InterruptedException e) {
 			}
+
 			try {
-				outputSocket.shutdownOutput();
-			} catch (Exception e) {
+				external.close();
+			} catch (final IOException e) {
 			}
+
+			try {
+				internal.close();
+			} catch (final IOException e) {
+			}
+
+			this.logger.info("Shutdown connection between "
+					+ StringUtils.formatSocket(internal) + " and "
+					+ StringUtils.formatSocket(external));
 		}
 	}
 
@@ -255,36 +221,47 @@ public abstract class AbstractSocksImplementation implements
 		 * Constructor
 		 * 
 		 * @param inputSocket
-		 *            the input socket
+		 *            the input clientSocket
 		 * @param outputSocket
-		 *            the output socket
+		 *            the output clientSocket
 		 */
 		public TunnelThread(final Socket inputSocket, final Socket outputSocket) {
 			this.inputSocket = inputSocket;
 			this.outputSocket = outputSocket;
 		}
 
+		@Override
 		public void run() {
-			AbstractSocksImplementation.this.doTunnel(this.inputSocket,
-					this.outputSocket);
+			try {
+				SocketUtils.copy(this.inputSocket, this.outputSocket);
+			} catch (final IOException e) {
+			}
 
-			countDownLatch.countDown();
+			AbstractSocksImplementation.this.countDownLatch.countDown();
 
 		}
 	}
 
 	/**
-	 * @return the socket
+	 * @return the clientSocket
 	 */
-	protected Socket getSocket() {
-		return socket;
+	protected Socket getClientSocket() {
+		return this.clientSocket;
 	}
 
+	/**
+	 * @return the client input stream
+	 * @throws IOException
+	 */
 	protected InputStream getClientInputStream() throws IOException {
-		return socket.getInputStream();
+		return this.clientSocket.getInputStream();
 	}
 
+	/**
+	 * @return the client output stream
+	 * @throws IOException
+	 */
 	protected OutputStream getClientOutputStream() throws IOException {
-		return socket.getOutputStream();
+		return this.clientSocket.getOutputStream();
 	}
 }
