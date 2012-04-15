@@ -1,5 +1,5 @@
 /**
- * JSocksProxy Copyright (c) 2006-2011 Kenny Colliander Nordin
+ * JSocksProxy Copyright (c) 2006-2012 Kenny Colliander Nordin
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,14 @@ package nu.najt.kecon.jsocksproxy;
  * 
  * @author Kenny Colliander Nordin
  */
-public interface SocksImplementation {
+public interface SocksImplementation extends Runnable {
 
-    /**
-     * This method is the method which handle the handshake (except for the
-     * first version check) and tunneling.
-     * 
-     */
-    public void handle();
+	/**
+	 * This method is the method which handle the handshake (except for the
+	 * first version check) and tunneling.
+	 * 
+	 */
+	@Override
+	public void run();
 
 }
