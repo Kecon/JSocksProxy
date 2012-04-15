@@ -1,5 +1,5 @@
 /**
- * JSocksProxy Copyright (c) 2006-2011 Kenny Colliander Nordin
+ * JSocksProxy Copyright (c) 2006-2012 Kenny Colliander Nordin
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,11 @@ import java.util.Map;
 
 import nu.najt.kecon.jsocksproxy.IllegalAddressTypeException;
 
+/**
+ * Available address types for SOCKS5
+ * 
+ * @author Kenny Colliander Nordin
+ */
 public enum AddressType {
 	/** Connect */
 	IP_V4((byte) 0x01),
@@ -38,13 +43,13 @@ public enum AddressType {
 	}
 
 	public byte getValue() {
-		return value;
+		return this.value;
 	}
 
 	private static final Map<Byte, AddressType> map;
 	static {
 		final Map<Byte, AddressType> commands = new HashMap<Byte, AddressType>();
-		for (AddressType command : AddressType.values()) {
+		for (final AddressType command : AddressType.values()) {
 			commands.put(command.getValue(), command);
 		}
 
@@ -53,7 +58,7 @@ public enum AddressType {
 
 	public static AddressType valueOf(final Byte b)
 			throws IllegalAddressTypeException {
-		AddressType command = map.get(b);
+		final AddressType command = AddressType.map.get(b);
 
 		if (command == null) {
 			throw new IllegalAddressTypeException("Unknown address type: 0x"

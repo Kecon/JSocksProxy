@@ -1,5 +1,5 @@
 /**
- * JSocksProxy Copyright (c) 2006-2011 Kenny Colliander Nordin
+ * JSocksProxy Copyright (c) 2006-2012 Kenny Colliander Nordin
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,11 @@
  */
 package nu.najt.kecon.jsocksproxy.socks5;
 
+/**
+ * Available status codes for SOCKS 5
+ * 
+ * @author Kenny Colliander Nordin
+ */
 public enum Status {
 	/** Succeeded */
 	SUCCEEDED((byte) 0x00),
@@ -50,6 +55,6 @@ public enum Status {
 	}
 
 	public byte getValue() {
-		return value;
+		return this.value;
 	}
 }
