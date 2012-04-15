@@ -1,5 +1,5 @@
 /**
- * JSocksProxy Copyright (c) 2006-2011 Kenny Colliander Nordin
+ * JSocksProxy Copyright (c) 2006-2012 Kenny Colliander Nordin
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package nu.najt.kecon.jsocksproxy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import nu.najt.kecon.jsocksproxy.socks4.SocksImplementation4;
 import nu.najt.kecon.jsocksproxy.socks5.SocksImplementation5;
@@ -32,6 +34,8 @@ import nu.najt.kecon.jsocksproxy.socks5.SocksImplementation5;
  */
 public class SocksImplementationFactory {
 
+	private static final Executor EXECUTOR = Executors.newCachedThreadPool();
+
 	/**
 	 * Return a SOCKS implementation
 	 * 
@@ -43,7 +47,7 @@ public class SocksImplementationFactory {
 	 * @throws UnknownSocksVersion
 	 */
 	public static final SocksImplementation getImplementation(
-			final JSocksProxy jSocksProxy, final Socket socket)
+			final ConfigurationFacade configurationFacade, final Socket socket)
 			throws IOException, AccessDeniedException, ProtocolException {
 		final InputStream inputStream = socket.getInputStream();
 
@@ -51,23 +55,25 @@ public class SocksImplementationFactory {
 
 		switch (protocol) {
 		case 0x04:
-			if (jSocksProxy.isAllowSocks4()) {
-				return new SocksImplementation4(jSocksProxy, socket);
+			if (configurationFacade.isAllowSocks4()) {
+				return new SocksImplementation4(configurationFacade, socket,
+						SocksImplementationFactory.EXECUTOR);
 			} else {
 				try {
 					socket.close();
-				} catch (Exception e) {
+				} catch (final Exception e) {
 				}
 				throw new AccessDeniedException("SOCKS4 is not enabled");
 			}
 
 		case 0x05:
-			if (jSocksProxy.isAllowSocks5()) {
-				return new SocksImplementation5(jSocksProxy, socket);
+			if (configurationFacade.isAllowSocks5()) {
+				return new SocksImplementation5(configurationFacade, socket,
+						SocksImplementationFactory.EXECUTOR);
 			} else {
 				try {
 					socket.close();
-				} catch (Exception e) {
+				} catch (final Exception e) {
 				}
 				throw new AccessDeniedException("SOCKS5 is not enabled");
 			}
@@ -75,7 +81,7 @@ public class SocksImplementationFactory {
 		default:
 			try {
 				socket.close();
-			} catch (Exception e) {
+			} catch (final Exception e) {
 			}
 			throw new ProtocolException("Unknown protocol: 0x"
 					+ Integer.toHexString(protocol));
