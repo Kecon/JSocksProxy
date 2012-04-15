@@ -1,5 +1,5 @@
 /**
- * JSocksProxy Copyright (c) 2006-2011 Kenny Colliander Nordin
+ * JSocksProxy Copyright (c) 2006-2012 Kenny Colliander Nordin
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,39 +24,39 @@ import javax.xml.bind.annotation.XmlElement;
  * 
  */
 public class Listen {
-    private String address;
+	private String address;
 
-    private int port;
+	private int port;
 
-    /**
-     * @return the address
-     */
-    public String getAddress() {
-	return address;
-    }
+	/**
+	 * @return the address
+	 */
+	public String getAddress() {
+		return this.address;
+	}
 
-    /**
-     * @param address
-     *                the address to set
-     */
-    public void setAddress(String address) {
-	this.address = address;
-    }
+	/**
+	 * @param address
+	 *            the address to set
+	 */
+	public void setAddress(final String address) {
+		this.address = address;
+	}
 
-    /**
-     * @return the port
-     */
-    @XmlElement(defaultValue = "1080")
-    public int getPort() {
-	return port;
-    }
+	/**
+	 * @return the port
+	 */
+	@XmlElement(defaultValue = "1080")
+	public int getPort() {
+		return this.port;
+	}
 
-    /**
-     * @param port
-     *                the port to set
-     */
-    public void setPort(int port) {
-	this.port = port;
-    }
+	/**
+	 * @param port
+	 *            the port to set
+	 */
+	public void setPort(final int port) {
+		this.port = port;
+	}
 
 }

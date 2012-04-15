@@ -1,5 +1,5 @@
 /**
- * JSocksProxy Copyright (c) 2006-2011 Kenny Colliander Nordin
+ * JSocksProxy Copyright (c) 2006-2012 Kenny Colliander Nordin
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,14 +43,14 @@ public class Configuration {
 	 * @return the backlog
 	 */
 	public int getBacklog() {
-		return backlog;
+		return this.backlog;
 	}
 
 	/**
 	 * @param backlog
 	 *            the backlog to set
 	 */
-	public void setBacklog(int backlog) {
+	public void setBacklog(final int backlog) {
 		this.backlog = backlog;
 	}
 
@@ -59,14 +59,14 @@ public class Configuration {
 	 */
 	@XmlElement(name = "outgoingAddress")
 	public List<String> getOutgoingAddresses() {
-		return outgoingAddresses;
+		return this.outgoingAddresses;
 	}
 
 	/**
 	 * @param outgoingAddresses
 	 *            the outgoingAddress to set
 	 */
-	public void setOutgoingAddresses(List<String> outgoingAddresses) {
+	public void setOutgoingAddresses(final List<String> outgoingAddresses) {
 		this.outgoingAddresses = outgoingAddresses;
 	}
 
@@ -74,14 +74,14 @@ public class Configuration {
 	 * @return the listen
 	 */
 	public List<Listen> getListen() {
-		return listen;
+		return this.listen;
 	}
 
 	/**
 	 * @param listen
 	 *            the listen to set
 	 */
-	public void setListen(List<Listen> listen) {
+	public void setListen(final List<Listen> listen) {
 		this.listen = listen;
 	}
 
@@ -90,14 +90,14 @@ public class Configuration {
 	 */
 	@XmlElement(defaultValue = "true")
 	public boolean isAllowSocks4() {
-		return allowSocks4;
+		return this.allowSocks4;
 	}
 
 	/**
 	 * @param allowSocks4
 	 *            the allowSocks4 to set
 	 */
-	public void setAllowSocks4(boolean allowSocks4) {
+	public void setAllowSocks4(final boolean allowSocks4) {
 		this.allowSocks4 = allowSocks4;
 	}
 
@@ -106,14 +106,14 @@ public class Configuration {
 	 */
 	@XmlElement(defaultValue = "true")
 	public boolean isAllowSocks5() {
-		return allowSocks5;
+		return this.allowSocks5;
 	}
 
 	/**
 	 * @param allowSocks5
 	 *            the allowSocks5 to set
 	 */
-	public void setAllowSocks5(boolean allowSocks5) {
+	public void setAllowSocks5(final boolean allowSocks5) {
 		this.allowSocks5 = allowSocks5;
 	}
 
