@@ -1,5 +1,5 @@
 /**
- * JSocksProxy Copyright (c) 2006-2011 Kenny Colliander Nordin
+ * JSocksProxy Copyright (c) 2006-2012 Kenny Colliander Nordin
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ public class ProtocolException extends Exception {
 	 * @param throwable
 	 *            the throwable
 	 */
-	public ProtocolException(String message, Throwable throwable) {
+	public ProtocolException(final String message, final Throwable throwable) {
 		super(message, throwable);
 	}
 
@@ -49,7 +49,7 @@ public class ProtocolException extends Exception {
 	 * @param message
 	 *            the message
 	 */
-	public ProtocolException(String message) {
+	public ProtocolException(final String message) {
 		super(message);
 	}
 
@@ -59,7 +59,7 @@ public class ProtocolException extends Exception {
 	 * @param throwable
 	 *            the throwable
 	 */
-	public ProtocolException(Throwable throwable) {
+	public ProtocolException(final Throwable throwable) {
 		super(throwable);
 	}
 

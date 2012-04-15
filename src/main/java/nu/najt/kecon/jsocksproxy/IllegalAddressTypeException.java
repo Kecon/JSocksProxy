@@ -1,5 +1,5 @@
 /**
- * JSocksProxy Copyright (c) 2006-2011 Kenny Colliander Nordin
+ * JSocksProxy Copyright (c) 2006-2012 Kenny Colliander Nordin
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,15 +29,16 @@ public class IllegalAddressTypeException extends Exception {
 		super();
 	}
 
-	public IllegalAddressTypeException(String arg0, Throwable arg1) {
-		super(arg0, arg1);
+	public IllegalAddressTypeException(final String message,
+			final Throwable cause) {
+		super(message, cause);
 	}
 
-	public IllegalAddressTypeException(String message) {
+	public IllegalAddressTypeException(final String message) {
 		super(message);
 	}
 
-	public IllegalAddressTypeException(Throwable cause) {
+	public IllegalAddressTypeException(final Throwable cause) {
 		super(cause);
 	}
 

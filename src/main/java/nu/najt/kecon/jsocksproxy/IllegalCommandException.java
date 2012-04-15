@@ -1,5 +1,5 @@
 /**
- * JSocksProxy Copyright (c) 2006-2011 Kenny Colliander Nordin
+ * JSocksProxy Copyright (c) 2006-2012 Kenny Colliander Nordin
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,45 +22,46 @@ package nu.najt.kecon.jsocksproxy;
  */
 public class IllegalCommandException extends Exception {
 
-    private static final long serialVersionUID = -8269863958875814009L;
+	private static final long serialVersionUID = -8269863958875814009L;
 
-    /**
-     * Constructor
-     */
-    public IllegalCommandException() {
-	super();
-    }
+	/**
+	 * Constructor
+	 */
+	public IllegalCommandException() {
+		super();
+	}
 
-    /**
-     * Constructor
-     * 
-     * @param message
-     *                the message
-     * @param throwable
-     *                the thorwable
-     */
-    public IllegalCommandException(String message, Throwable throwable) {
-	super(message, throwable);
-    }
+	/**
+	 * Constructor
+	 * 
+	 * @param message
+	 *            the message
+	 * @param throwable
+	 *            the thorwable
+	 */
+	public IllegalCommandException(final String message,
+			final Throwable throwable) {
+		super(message, throwable);
+	}
 
-    /**
-     * Constructor
-     * 
-     * @param message
-     *                the message
-     */
-    public IllegalCommandException(String message) {
-	super(message);
-    }
+	/**
+	 * Constructor
+	 * 
+	 * @param message
+	 *            the message
+	 */
+	public IllegalCommandException(final String message) {
+		super(message);
+	}
 
-    /**
-     * Constructor
-     * 
-     * @param throwable
-     *                the thorwable
-     */
-    public IllegalCommandException(Throwable throwable) {
-	super(throwable);
-    }
+	/**
+	 * Constructor
+	 * 
+	 * @param throwable
+	 *            the thorwable
+	 */
+	public IllegalCommandException(final Throwable throwable) {
+		super(throwable);
+	}
 
 }
