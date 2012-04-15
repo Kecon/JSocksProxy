@@ -1,5 +1,5 @@
 /**
- * JSocksProxy Copyright (c) 2006-2011 Kenny Colliander Nordin
+ * JSocksProxy Copyright (c) 2006-2012 Kenny Colliander Nordin
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 package nu.najt.kecon.jsocksproxy.socks5;
 
-import static nu.najt.kecon.jsocksproxy.utils.StringUtils.*;
-
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -27,14 +25,16 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.concurrent.Executor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import nu.najt.kecon.jsocksproxy.AbstractSocksImplementation;
+import nu.najt.kecon.jsocksproxy.ConfigurationFacade;
 import nu.najt.kecon.jsocksproxy.IllegalAddressTypeException;
 import nu.najt.kecon.jsocksproxy.IllegalCommandException;
-import nu.najt.kecon.jsocksproxy.JSocksProxy;
 import nu.najt.kecon.jsocksproxy.ProtocolException;
+import nu.najt.kecon.jsocksproxy.utils.StringUtils;
 
 /**
  * This is the SOCKS5 implementation.<br>
@@ -56,17 +56,21 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 	/**
 	 * Constructor
 	 * 
-	 * @param jSocksProxy
-	 *            the parent instance
-	 * @param socket
-	 *            the socket
+	 * @param configurationFacade
+	 *            the configuration facade
+	 * @param clientSocket
+	 *            the client socket
+	 * @param executor
+	 *            the executor
 	 */
-	public SocksImplementation5(final JSocksProxy jSocksProxy,
-			final Socket socket) {
-		super(jSocksProxy, socket, staticLogger);
+	public SocksImplementation5(final ConfigurationFacade configurationFacade,
+			final Socket clientSocket, final Executor executor) {
+		super(configurationFacade, clientSocket,
+				SocksImplementation5.staticLogger, executor);
 	}
 
-	public void handle() {
+	@Override
+	public void run() {
 		DataInputStream inputStream = null;
 		DataOutputStream outputStream = null;
 		Socket clientSocket = null;
@@ -83,12 +87,13 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 
 			final byte socksVersion = inputStream.readByte();
 
-			if (socksVersion != PROTOCOL_VERSION) {
+			if (socksVersion != SocksImplementation5.PROTOCOL_VERSION) {
 				throw new ProtocolException("Unsupported version: 0x"
 						+ Integer.toHexString(socksVersion));
 			}
 
 			final Command command = Command.valueOf(inputStream.readByte());
+			final byte[] hostname;
 
 			inputStream.readByte(); // reserved byte
 
@@ -99,12 +104,14 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 				final byte[] address = new byte[4];
 				inputStream.readFully(address);
 				remoteInetAddress = InetAddress.getByAddress(address);
+				hostname = null;
 
 			} else if (addressType == AddressType.IP_V6) {
 
 				final byte[] address = new byte[16];
 				inputStream.readFully(address);
 				remoteInetAddress = InetAddress.getByAddress(address);
+				hostname = null;
 
 			} else if (addressType == AddressType.DOMAIN) {
 
@@ -114,6 +121,7 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 				inputStream.readFully(hostBuf);
 				remoteInetAddress = InetAddress.getByName(new String(hostBuf,
 						"US-ASCII"));
+				hostname = hostBuf;
 
 			} else {
 				// Should be impossible
@@ -127,30 +135,30 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 			if (command == Command.CONNECT) {
 				try {
 
-					if (logger.isLoggable(Level.FINE)) {
-						logger.fine("Connecting to " + host + ":" + port
+					if (this.logger.isLoggable(Level.FINE)) {
+						this.logger.fine("Connecting to " + host + ":" + port
 								+ "...");
 					}
 
 					clientSocket = this.openConnection(remoteInetAddress, port);
 
-					if (logger.isLoggable(Level.FINE)) {
-						logger.fine("Connected to " + host + ":" + port);
+					if (this.logger.isLoggable(Level.FINE)) {
+						this.logger.fine("Connected to " + host + ":" + port);
 					}
 
-				} catch (IOException e) {
+				} catch (final IOException e) {
 					this.logger.info("Failed to connect to: " + host + ":"
 							+ port);
 					this.writeResponse(outputStream, Status.HOST_UNREACHABLE,
-							addressType, remoteInetAddress, port);
+							addressType, remoteInetAddress, hostname, port);
 					return;
 				}
 
 				this.writeResponse(outputStream, Status.SUCCEEDED, addressType,
-						clientSocket.getInetAddress(),
+						clientSocket.getLocalAddress(), hostname,
 						clientSocket.getLocalPort());
 
-				this.tunnel(this.getSocket(), clientSocket);
+				this.tunnel(this.getClientSocket(), clientSocket);
 
 				if (this.logger.isLoggable(Level.FINE)) {
 					this.logger.log(Level.FINE, "Disconnected from: " + host
@@ -164,32 +172,43 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 
 					this.writeResponse(outputStream, Status.SUCCEEDED,
 							addressType, serverSocket.getInetAddress(),
-							serverSocket.getLocalPort());
+							hostname, serverSocket.getLocalPort());
 
 					if (this.logger.isLoggable(Level.FINE)) {
-						this.logger.log(Level.FINE,
+						this.logger.log(
+								Level.FINE,
 								"Bound to "
 										+ serverSocket.getInetAddress()
-												.getHostAddress() + ":"
-										+ serverSocket.getLocalPort() + ":"
-										+ port + " for "
-										+ formatSocket(getSocket()));
+												.getHostAddress()
+										+ ":"
+										+ serverSocket.getLocalPort()
+										+ ":"
+										+ port
+										+ " for "
+										+ StringUtils.formatSocket(this
+												.getClientSocket()));
 					}
 
 					clientSocket = serverSocket.accept();
 					if (this.logger.isLoggable(Level.FINE)) {
-						this.logger.log(Level.FINE, "Accepted "
-								+ formatSocket(clientSocket) + " to "
-								+ formatSocket(getSocket()));
+						this.logger.log(
+								Level.FINE,
+								"Accepted "
+										+ StringUtils
+												.formatSocket(clientSocket)
+										+ " to "
+										+ StringUtils.formatSocket(this
+												.getClientSocket()));
 					}
 				} finally {
 					serverSocket.close();
 				}
 
 				this.writeResponse(outputStream, Status.SUCCEEDED, addressType,
-						clientSocket.getInetAddress(), clientSocket.getPort());
+						clientSocket.getInetAddress(), null,
+						clientSocket.getPort());
 
-				this.tunnel(this.getSocket(), clientSocket);
+				this.tunnel(this.getClientSocket(), clientSocket);
 
 				if (this.logger.isLoggable(Level.FINE)) {
 					this.logger.log(Level.FINE, "Disconnected from: " + host
@@ -199,79 +218,81 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 			} else {
 				throw new IllegalCommandException("Unknown command: " + command);
 			}
-		} catch (UnknownHostException e) {
+		} catch (final UnknownHostException e) {
 			this.logger.log(Level.INFO, "Failed to resolve host: " + host, e);
 			try {
 				this.writeResponse(outputStream, Status.HOST_UNREACHABLE,
-						addressType, null, 0);
-			} catch (IOException ioe) {
+						addressType, null, null, 0);
+			} catch (final IOException ioe) {
 			}
-		} catch (RuntimeException e) {
+		} catch (final RuntimeException e) {
 			this.logger.log(Level.WARNING, e.getMessage(), e);
 
 			try {
 				this.writeResponse(outputStream,
 						Status.GENERAL_SOCKS_SERVER_FAILURE, addressType, null,
-						0);
-			} catch (IOException ioe) {
+						null, 0);
+			} catch (final IOException ioe) {
 			}
-		} catch (ProtocolException e) {
+		} catch (final ProtocolException e) {
 			try {
 				this.writeResponse(outputStream, Status.COMMAND_NOT_SUPPORTED,
-						addressType, null, 0);
-			} catch (IOException ioe) {
+						addressType, null, null, 0);
+			} catch (final IOException ioe) {
 			}
-		} catch (IllegalCommandException e) {
+		} catch (final IllegalCommandException e) {
 			try {
+				this.logger.log(Level.INFO, e.getMessage(), e);
 				this.writeResponse(outputStream, Status.COMMAND_NOT_SUPPORTED,
-						addressType, null, 0);
-			} catch (IOException ioe) {
+						addressType, null, null, 0);
+			} catch (final IOException ioe) {
 			}
-		} catch (IOException e) {
-		} catch (IllegalAddressTypeException e) {
+		} catch (final IOException e) {
+		} catch (final IllegalAddressTypeException e) {
 			try {
 				this.writeResponse(outputStream,
-						Status.ADDRESS_TYPE_NOT_SUPPORTED, addressType, null, 0);
-			} catch (IOException ioe) {
+						Status.ADDRESS_TYPE_NOT_SUPPORTED, addressType, null,
+						null, 0);
+			} catch (final IOException ioe) {
 			}
 		} finally {
 			if (inputStream != null) {
 				try {
 					inputStream.close();
-				} catch (IOException e) {
+				} catch (final IOException e) {
 				}
 			}
 
 			if (outputStream != null) {
 				try {
 					outputStream.close();
-				} catch (IOException e) {
+				} catch (final IOException e) {
 				}
 			}
 
-			if (this.getSocket() != null) {
+			if (this.getClientSocket() != null) {
 				try {
-					this.getSocket().close();
-				} catch (IOException e) {
+					this.getClientSocket().close();
+				} catch (final IOException e) {
 				}
 			}
 
 			if (clientSocket != null) {
 				try {
 					clientSocket.close();
-				} catch (IOException e) {
+				} catch (final IOException e) {
 				}
 			}
 		}
 	}
 
-	protected void authenticate(final DataInputStream inputStream,
+	void authenticate(final DataInputStream inputStream,
 			final DataOutputStream outputStream) throws IOException {
 		final int numberOfAuthMethods = inputStream.readByte() & 0xFF;
 
 		boolean supported = false;
 		for (int i = 0; i < numberOfAuthMethods; i++) {
-			byte authMethod = inputStream.readByte();
+			final byte authMethod = inputStream.readByte();
 
 			if (authMethod == 0x00) {
 				supported = true;
@@ -279,7 +300,7 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 		}
 
 		final byte handshakeResponse[] = new byte[2];
-		handshakeResponse[0] = PROTOCOL_VERSION;
+		handshakeResponse[0] = SocksImplementation5.PROTOCOL_VERSION;
 
 		if (supported) {
 			handshakeResponse[1] = 0x00;
@@ -291,7 +312,7 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 			outputStream.flush();
 			this.logger
 					.info("No supported authentication methods specified from "
-							+ formatSocket(this.getSocket()));
+							+ StringUtils.formatSocket(this.getClientSocket()));
 			throw new EOFException();
 		}
 	}
@@ -311,9 +332,10 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 	 *            the port
 	 * @throws IOException
 	 */
-	protected void writeResponse(final DataOutputStream outputStream,
+	void writeResponse(final DataOutputStream outputStream,
 			final Status status, final AddressType addressType,
-			final InetAddress boundAddress, final int port) throws IOException {
+			final InetAddress boundAddress, final byte[] hostname,
+			final int port) throws IOException {
 
 		byte[] safeAddress = null;
 		if (boundAddress == null) {
@@ -323,20 +345,23 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 			} else {
 				safeAddress = new byte[] { 0, 0, 0, 0 };
 			}
-		} else {
+		} else if (hostname == null) {
 			safeAddress = boundAddress.getAddress();
+		} else {
+			safeAddress = hostname;
 		}
 
 		if (status != Status.SUCCEEDED) {
 			this.logger.info("Client "
-					+ this.getSocket().getInetAddress().getHostAddress() + ":"
-					+ this.getSocket().getPort() + " failed to connected to "
+					+ this.getClientSocket().getInetAddress().getHostAddress()
+					+ ":" + this.getClientSocket().getPort()
+					+ " failed to connected to "
 					+ InetAddress.getByAddress(safeAddress).getHostAddress()
 					+ ":" + port + ", result 0x"
 					+ Integer.toHexString(status.getValue()) + " " + status);
 		}
 
-		outputStream.write(PROTOCOL_VERSION);
+		outputStream.write(SocksImplementation5.PROTOCOL_VERSION);
 		outputStream.write(status.getValue());
 		outputStream.write(0x00); // reserved
 
