@@ -1,5 +1,5 @@
 /**
- * JSocksProxy Copyright (c) 2006-2011 Kenny Colliander Nordin
+ * JSocksProxy Copyright (c) 2006-2012 Kenny Colliander Nordin
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,11 @@ import java.util.Map;
 
 import nu.najt.kecon.jsocksproxy.IllegalCommandException;
 
+/**
+ * Available commands for SOCKS v4 and v4a
+ * 
+ * @author Kenny Colliander Nordin
+ */
 public enum Command {
 	/** Connect */
 	CONNECT((byte) 0x01),
@@ -35,13 +40,13 @@ public enum Command {
 	}
 
 	public byte getValue() {
-		return value;
+		return this.value;
 	}
 
 	private static final Map<Byte, Command> map;
 	static {
 		final Map<Byte, Command> commands = new HashMap<Byte, Command>();
-		for (Command command : Command.values()) {
+		for (final Command command : Command.values()) {
 			commands.put(command.getValue(), command);
 		}
 
@@ -49,7 +54,7 @@ public enum Command {
 	}
 
 	public static Command valueOf(final Byte b) throws IllegalCommandException {
-		final Command command = map.get(b);
+		final Command command = Command.map.get(b);
 
 		if (command == null) {
 			throw new IllegalCommandException("Unknown command command: 0x"
