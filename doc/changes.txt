@@ -16,6 +16,10 @@
 *****************************************************************************
   Changes for JSocksProxy
   
+  2017-04-10, 3.0-alfa Kenny Colliander Nordin
+   - Changed from Ant to Maven
+   - 
+  
   2008-07-22, 2.0 Kenny Colliander Nordin 
    - Added a graphical interface 
    - Added support for JBoss.
