@@ -176,6 +176,11 @@ public class SocksImplementation5Test {
 			public boolean isAllowSocks5() {
 				return false;
 			}
+
+			@Override
+			public int getBacklog() {
+				return 100;
+			}
 		};
 
 		executor.execute(new SocksImplementation5(configurationFacade,

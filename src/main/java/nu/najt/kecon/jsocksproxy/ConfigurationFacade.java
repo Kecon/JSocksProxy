@@ -22,7 +22,6 @@ import java.util.List;
  * Contains methods for accessing the running configuration
  * 
  * @author Kenny Colliander Nordin
- * 
  */
 public interface ConfigurationFacade {
 	/**
@@ -39,4 +38,11 @@ public interface ConfigurationFacade {
 	 * @return true if SOCKS version 5 is allowed
 	 */
 	public boolean isAllowSocks5();
+
+	/**
+	 * @return the backlog
+	 * @since 3.0
+	 */
+	public int getBacklog();
+
 }

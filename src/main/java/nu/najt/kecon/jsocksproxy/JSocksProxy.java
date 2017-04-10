@@ -1,5 +1,5 @@
 /**
- * JSocksProxy Copyright (c) 2006-2012 Kenny Colliander Nordin
+ * JSocksProxy Copyright (c) 2006-2017 Kenny Colliander Nordin
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.net.URI;
 import java.net.URL;
 import java.net.UnknownHostException;
@@ -42,7 +40,6 @@ import java.util.logging.Logger;
 import javax.naming.InitialContext;
 import javax.naming.Name;
 import javax.naming.NamingException;
-import javax.net.ServerSocketFactory;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -55,26 +52,26 @@ import nu.najt.kecon.jsocksproxy.utils.StringUtils;
  * This SOCKS proxy supports basic unauthenticated v4 and v5 versions.
  * 
  * @author Kenny Colliander Nordin
- * 
  */
-public class JSocksProxy implements JSocksProxyMBean, ConfigurationFacade,
-		Runnable {
+public class JSocksProxy
+		implements JSocksProxyMBean, ConfigurationFacade, Runnable {
 
 	private static final String VERSION = (JSocksProxy.class.getPackage()
-			.getImplementationVersion() != null) ? JSocksProxy.class
-			.getPackage().getImplementationVersion() : "n/a";
+			.getImplementationVersion() != null)
+					? JSocksProxy.class.getPackage().getImplementationVersion()
+					: "n/a";
 
 	private static final JSocksProxy SINGLETON = new JSocksProxy();;
 
 	public static final String CONFIGURATION_XML = "jsocksproxy.xml";
 
-	private final Logger logger = Logger.getLogger(this.getClass().getName());
+	final Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private final List<InetSocketAddress> listeningAddresses = new ArrayList<InetSocketAddress>();
 
-	private final List<ListeningThread> listeningThreads = new CopyOnWriteArrayList<JSocksProxy.ListeningThread>();
+	private final List<ListeningThread> listeningThreads = new CopyOnWriteArrayList<ListeningThread>();
 
-	private static final ExecutorService EXECUTOR = Executors
+	private final ExecutorService executorService = Executors
 			.newCachedThreadPool();
 
 	private List<InetAddress> outgoingSourceAddresses = null;
@@ -164,7 +161,7 @@ public class JSocksProxy implements JSocksProxyMBean, ConfigurationFacade,
 	 */
 	@Override
 	public void start() {
-		JSocksProxy.EXECUTOR.execute(this);
+		this.executorService.execute(this);
 	}
 
 	/**
@@ -257,7 +254,8 @@ public class JSocksProxy implements JSocksProxyMBean, ConfigurationFacade,
 			boolean found = false;
 			for (final ListeningThread listeningThread : this.listeningThreads) {
 
-				if (listeningThread.inetSocketAddress.equals(inetSocketAddress)) {
+				if (listeningThread.getInetSocketAddress()
+						.equals(inetSocketAddress)) {
 					found = true;
 					threadsForRemoval.remove(listeningThread);
 					break;
@@ -267,18 +265,19 @@ public class JSocksProxy implements JSocksProxyMBean, ConfigurationFacade,
 			if (!found) {
 				try {
 					final ListeningThread listeningThread = new ListeningThread(
+							this, this.logger, executorService,
 							inetSocketAddress);
+
 					this.listeningThreads.add(listeningThread);
 
-					JSocksProxy.EXECUTOR.execute(listeningThread);
+					executorService.execute(listeningThread);
 
 				} catch (final IOException e) {
-					this.logger
-							.log(Level.SEVERE,
-									"Failed to setup listening address for "
-											+ StringUtils
-													.formatSocketAddress(inetSocketAddress),
-									e);
+					this.logger.log(Level.SEVERE,
+							"Failed to setup listening address for "
+									+ StringUtils.formatSocketAddress(
+											inetSocketAddress),
+							e);
 				}
 			}
 		}
@@ -286,100 +285,6 @@ public class JSocksProxy implements JSocksProxyMBean, ConfigurationFacade,
 		for (final ListeningThread listeningThread : threadsForRemoval) {
 			listeningThread.shutdown();
 			this.listeningThreads.remove(listeningThread);
-		}
-
-	}
-
-	/**
-	 * This thread handle incoming connections for a specific listening address
-	 */
-	protected class ListeningThread implements Runnable {
-
-		private final AtomicBoolean mayRun = new AtomicBoolean(Boolean.TRUE);
-
-		private final InetSocketAddress inetSocketAddress;
-
-		private final ServerSocket serverSocket;
-
-		/**
-		 * ListeningThread constructor
-		 * 
-		 * @param inetSocketAddress
-		 *            the address that the listening thread should bind to
-		 * @throws IOException
-		 */
-		public ListeningThread(final InetSocketAddress inetSocketAddress)
-				throws IOException {
-			this.inetSocketAddress = inetSocketAddress;
-
-			JSocksProxy.this.logger
-					.info("Listening for incoming connections at "
-							+ StringUtils
-									.formatSocketAddress(inetSocketAddress));
-
-			this.serverSocket = ServerSocketFactory.getDefault()
-					.createServerSocket(inetSocketAddress.getPort(),
-							JSocksProxy.this.backlog,
-							inetSocketAddress.getAddress());
-		}
-
-		@Override
-		public void run() {
-			try {
-
-				Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-
-				Socket socket;
-				while (this.mayRun.get()
-						&& ((socket = this.serverSocket.accept()) != null)) {
-					socket.setTcpNoDelay(true);
-					socket.setKeepAlive(true);
-
-					try {
-						JSocksProxy.EXECUTOR.execute(SocksImplementationFactory
-								.getImplementation(JSocksProxy.this, socket));
-
-					} catch (final ProtocolException e) {
-						JSocksProxy.this.logger.log(Level.WARNING,
-								"Unknown SOCKS VERSION requested by "
-										+ StringUtils.formatSocket(socket), e);
-					} catch (final AccessDeniedException e) {
-						JSocksProxy.this.logger.log(
-								Level.WARNING,
-								"Access Denied for "
-										+ StringUtils.formatSocket(socket), e);
-					}
-				}
-
-				this.serverSocket.close();
-			} catch (final Exception e) {
-				if (this.mayRun.get()) {
-					JSocksProxy.this.logger
-							.log(Level.SEVERE,
-									"Unknown error occurred for "
-											+ StringUtils
-													.formatSocketAddress(this.inetSocketAddress),
-									e);
-				}
-			} finally {
-				JSocksProxy.this.logger.info("Shutdown SOCKS proxy for "
-						+ StringUtils
-								.formatSocketAddress(this.inetSocketAddress));
-			}
-		}
-
-		/**
-		 * Turn indication on that the thread should shutdown
-		 */
-		public void shutdown() {
-			this.mayRun.set(Boolean.FALSE);
-
-			if (this.serverSocket != null) {
-				try {
-					this.serverSocket.close();
-				} catch (final IOException e) {
-				}
-			}
 		}
 	}
 
@@ -393,9 +298,9 @@ public class JSocksProxy implements JSocksProxyMBean, ConfigurationFacade,
 
 		if (this.configurationBasePathPropertyKey != null) {
 			try {
-				basePath = new URL(
-						System.getProperty(this.configurationBasePathPropertyKey))
-						.toURI();
+				basePath = new URL(System
+						.getProperty(this.configurationBasePathPropertyKey))
+								.toURI();
 			} catch (final Exception e) {
 				basePath = null;
 			}
@@ -459,11 +364,11 @@ public class JSocksProxy implements JSocksProxyMBean, ConfigurationFacade,
 					.getOutgoingAddresses()) {
 				try {
 
-					outgoingAddresses.addAll(Arrays.asList(InetAddress
-							.getAllByName(address)));
+					outgoingAddresses.addAll(
+							Arrays.asList(InetAddress.getAllByName(address)));
 				} catch (final UnknownHostException e) {
-					this.logger.log(Level.WARNING, "Failed to resolve "
-							+ address, e);
+					this.logger.log(Level.WARNING,
+							"Failed to resolve " + address, e);
 				}
 			}
 
@@ -524,8 +429,10 @@ public class JSocksProxy implements JSocksProxyMBean, ConfigurationFacade,
 						+ StringUtils.formatSocketAddress(inetSocketAddress));
 
 			} catch (final IllegalArgumentException e) {
-				this.logger.log(Level.WARNING, "Failed to create address "
-						+ listen.getAddress() + ":" + listen.getPort(), e);
+				this.logger.log(
+						Level.WARNING, "Failed to create address "
+								+ listen.getAddress() + ":" + listen.getPort(),
+						e);
 				continue;
 			}
 		}
@@ -573,5 +480,10 @@ public class JSocksProxy implements JSocksProxyMBean, ConfigurationFacade,
 		}
 
 		return this.configuration.isAllowSocks5();
+	}
+
+	@Override
+	public int getBacklog() {
+		return this.backlog;
 	}
 }
