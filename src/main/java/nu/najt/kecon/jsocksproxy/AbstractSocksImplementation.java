@@ -48,7 +48,7 @@ public abstract class AbstractSocksImplementation implements
 
 	private final Executor executor;
 
-	private final CountDownLatch countDownLatch = new CountDownLatch(1);
+	final CountDownLatch countDownLatch = new CountDownLatch(1);
 
 	/**
 	 * Constructor
@@ -169,7 +169,7 @@ public abstract class AbstractSocksImplementation implements
 				+ StringUtils.formatSocket(internal) + " and "
 				+ StringUtils.formatSocket(external));
 
-		this.executor.execute(new TunnelThread(external, internal));
+		this.executor.execute(new TunnelThread(this.countDownLatch, external, internal));
 
 		try {
 			SocketUtils.copy(internal, external);
@@ -205,40 +205,6 @@ public abstract class AbstractSocksImplementation implements
 			this.logger.info("Shutdown connection between "
 					+ StringUtils.formatSocket(internal) + " and "
 					+ StringUtils.formatSocket(external));
-		}
-	}
-
-	/**
-	 * The thread which make this connection go in duplex mode
-	 */
-	private class TunnelThread implements Runnable {
-
-		private final Socket inputSocket;
-
-		private final Socket outputSocket;
-
-		/**
-		 * Constructor
-		 * 
-		 * @param inputSocket
-		 *            the input clientSocket
-		 * @param outputSocket
-		 *            the output clientSocket
-		 */
-		public TunnelThread(final Socket inputSocket, final Socket outputSocket) {
-			this.inputSocket = inputSocket;
-			this.outputSocket = outputSocket;
-		}
-
-		@Override
-		public void run() {
-			try {
-				SocketUtils.copy(this.inputSocket, this.outputSocket);
-			} catch (final IOException e) {
-			}
-
-			AbstractSocksImplementation.this.countDownLatch.countDown();
-
 		}
 	}
 
