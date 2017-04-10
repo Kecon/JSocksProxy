@@ -21,6 +21,12 @@
 			<version>4.11</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.9.5</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -44,7 +50,7 @@
 							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
 							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
 							<addClasspath>true</addClasspath>
-              				<mainClass>nu.najt.kecon.jsocksproxy.JSocksProxy</mainClass>
+							<mainClass>nu.najt.kecon.jsocksproxy.JSocksProxy</mainClass>
 						</manifest>
 					</archive>
 				</configuration>

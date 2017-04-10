@@ -39,8 +39,8 @@ import nu.najt.kecon.jsocksproxy.utils.StringUtils;
 /**
  * This is the SOCKS5 implementation.<br>
  * <br>
- * More about the SOCKS protocol <a
- * href="http://en.wikipedia.org/wiki/SOCKS">http
+ * More about the SOCKS protocol
+ * <a href="http://en.wikipedia.org/wiki/SOCKS">http
  * ://en.wikipedia.org/wiki/SOCKS</a>
  * 
  * @author Kenny Colliander Nordin
@@ -50,7 +50,7 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 
 	private static final byte PROTOCOL_VERSION = 0x05;
 
-	private static final Logger staticLogger = Logger
+	private static final Logger LOG = Logger
 			.getLogger("nu.najt.kecon.jsocksproxy.socks5");
 
 	/**
@@ -65,8 +65,8 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 	 */
 	public SocksImplementation5(final ConfigurationFacade configurationFacade,
 			final Socket clientSocket, final Executor executor) {
-		super(configurationFacade, clientSocket,
-				SocksImplementation5.staticLogger, executor);
+		super(configurationFacade, clientSocket, SocksImplementation5.LOG,
+				executor);
 	}
 
 	@Override
@@ -80,8 +80,8 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 		try {
 			// Handshake
 			inputStream = new DataInputStream(this.getClientInputStream());
-			outputStream = new DataOutputStream(new BufferedOutputStream(
-					this.getClientOutputStream()));
+			outputStream = new DataOutputStream(
+					new BufferedOutputStream(this.getClientOutputStream()));
 
 			this.authenticate(inputStream, outputStream);
 
@@ -119,8 +119,8 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 				final byte[] hostBuf = new byte[hostLength];
 
 				inputStream.readFully(hostBuf);
-				remoteInetAddress = InetAddress.getByName(new String(hostBuf,
-						"US-ASCII"));
+				remoteInetAddress = InetAddress
+						.getByName(new String(hostBuf, "US-ASCII"));
 				hostname = hostBuf;
 
 			} else {
@@ -136,19 +136,20 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 				try {
 
 					if (this.logger.isLoggable(Level.FINE)) {
-						this.logger.fine("Connecting to " + host + ":" + port
-								+ "...");
+						this.logger.fine(
+								"Connecting to " + host + ":" + port + "...");
 					}
 
-					clientSocket = this.openConnection(remoteInetAddress, port);
+					clientSocket = this.openConnection(remoteInetAddress,
+							port);
 
 					if (this.logger.isLoggable(Level.FINE)) {
 						this.logger.fine("Connected to " + host + ":" + port);
 					}
 
 				} catch (final IOException e) {
-					this.logger.info("Failed to connect to: " + host + ":"
-							+ port);
+					this.logger.info(
+							"Failed to connect to: " + host + ":" + port);
 					this.writeResponse(outputStream, Status.HOST_UNREACHABLE,
 							addressType, remoteInetAddress, hostname, port);
 					return;
@@ -161,12 +162,12 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 				this.tunnel(this.getClientSocket(), clientSocket);
 
 				if (this.logger.isLoggable(Level.FINE)) {
-					this.logger.log(Level.FINE, "Disconnected from: " + host
-							+ ":" + port);
+					this.logger.log(Level.FINE,
+							"Disconnected from: " + host + ":" + port);
 				}
 			} else if (command == Command.BIND) {
-				final ServerSocket serverSocket = this.bindConnection(
-						remoteInetAddress, port);
+				final ServerSocket serverSocket = this
+						.bindConnection(remoteInetAddress, port);
 
 				try {
 
@@ -175,30 +176,22 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 							hostname, serverSocket.getLocalPort());
 
 					if (this.logger.isLoggable(Level.FINE)) {
-						this.logger.log(
-								Level.FINE,
-								"Bound to "
-										+ serverSocket.getInetAddress()
-												.getHostAddress()
-										+ ":"
-										+ serverSocket.getLocalPort()
-										+ ":"
-										+ port
-										+ " for "
-										+ StringUtils.formatSocket(this
-												.getClientSocket()));
+						this.logger.log(Level.FINE, "Bound to "
+								+ serverSocket.getInetAddress()
+										.getHostAddress()
+								+ ":" + serverSocket.getLocalPort() + ":"
+								+ port + " for " + StringUtils
+										.formatSocket(this.getClientSocket()));
 					}
 
 					clientSocket = serverSocket.accept();
 					if (this.logger.isLoggable(Level.FINE)) {
-						this.logger.log(
-								Level.FINE,
+						this.logger.log(Level.FINE,
 								"Accepted "
 										+ StringUtils
 												.formatSocket(clientSocket)
-										+ " to "
-										+ StringUtils.formatSocket(this
-												.getClientSocket()));
+										+ " to " + StringUtils.formatSocket(
+												this.getClientSocket()));
 					}
 				} finally {
 					serverSocket.close();
@@ -211,12 +204,13 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 				this.tunnel(this.getClientSocket(), clientSocket);
 
 				if (this.logger.isLoggable(Level.FINE)) {
-					this.logger.log(Level.FINE, "Disconnected from: " + host
-							+ ":" + port);
+					this.logger.log(Level.FINE,
+							"Disconnected from: " + host + ":" + port);
 				}
 
 			} else {
-				throw new IllegalCommandException("Unknown command: " + command);
+				throw new IllegalCommandException(
+						"Unknown command: " + command);
 			}
 		} catch (final UnknownHostException e) {
 			this.logger.log(Level.INFO, "Failed to resolve host: " + host, e);
@@ -312,7 +306,8 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 			outputStream.flush();
 			this.logger
 					.info("No supported authentication methods specified from "
-							+ StringUtils.formatSocket(this.getClientSocket()));
+							+ StringUtils
+									.formatSocket(this.getClientSocket()));
 			throw new EOFException();
 		}
 	}
@@ -382,8 +377,8 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 				outputStream.write(safeAddress);
 			}
 		} else {
-			throw new IllegalStateException("Unknown address type: "
-					+ addressType);
+			throw new IllegalStateException(
+					"Unknown address type: " + addressType);
 		}
 
 		outputStream.writeShort(port & 0xFFFF);

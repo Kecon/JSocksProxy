@@ -60,11 +60,11 @@ import nu.najt.kecon.jsocksproxy.utils.StringUtils;
 public class JSocksProxy implements JSocksProxyMBean, ConfigurationFacade,
 		Runnable {
 
-	private static final String version = (JSocksProxy.class.getPackage()
+	private static final String VERSION = (JSocksProxy.class.getPackage()
 			.getImplementationVersion() != null) ? JSocksProxy.class
 			.getPackage().getImplementationVersion() : "n/a";
 
-	private static final JSocksProxy singleton = new JSocksProxy();;
+	private static final JSocksProxy SINGLETON = new JSocksProxy();;
 
 	public static final String CONFIGURATION_XML = "jsocksproxy.xml";
 
@@ -74,7 +74,7 @@ public class JSocksProxy implements JSocksProxyMBean, ConfigurationFacade,
 
 	private final List<ListeningThread> listeningThreads = new CopyOnWriteArrayList<JSocksProxy.ListeningThread>();
 
-	private static final ExecutorService executor = Executors
+	private static final ExecutorService EXECUTOR = Executors
 			.newCachedThreadPool();
 
 	private List<InetAddress> outgoingSourceAddresses = null;
@@ -149,14 +149,14 @@ public class JSocksProxy implements JSocksProxyMBean, ConfigurationFacade,
 	 * Static start method
 	 */
 	public static void startService() {
-		JSocksProxy.singleton.start();
+		JSocksProxy.SINGLETON.start();
 	}
 
 	/**
 	 * Static stop method
 	 */
 	public static void stopService() {
-		JSocksProxy.singleton.stop();
+		JSocksProxy.SINGLETON.stop();
 	}
 
 	/**
@@ -164,7 +164,7 @@ public class JSocksProxy implements JSocksProxyMBean, ConfigurationFacade,
 	 */
 	@Override
 	public void start() {
-		JSocksProxy.executor.execute(this);
+		JSocksProxy.EXECUTOR.execute(this);
 	}
 
 	/**
@@ -183,7 +183,7 @@ public class JSocksProxy implements JSocksProxyMBean, ConfigurationFacade,
 
 	@Override
 	public void run() {
-		this.logger.info("Starting SOCKS Proxy " + JSocksProxy.version);
+		this.logger.info("Starting SOCKS Proxy " + JSocksProxy.VERSION);
 
 		synchronized (this) {
 			if (this.canRun.getAndSet(Boolean.TRUE)) {
@@ -270,7 +270,7 @@ public class JSocksProxy implements JSocksProxyMBean, ConfigurationFacade,
 							inetSocketAddress);
 					this.listeningThreads.add(listeningThread);
 
-					JSocksProxy.executor.execute(listeningThread);
+					JSocksProxy.EXECUTOR.execute(listeningThread);
 
 				} catch (final IOException e) {
 					this.logger
@@ -336,12 +336,12 @@ public class JSocksProxy implements JSocksProxyMBean, ConfigurationFacade,
 					socket.setKeepAlive(true);
 
 					try {
-						JSocksProxy.executor.execute(SocksImplementationFactory
+						JSocksProxy.EXECUTOR.execute(SocksImplementationFactory
 								.getImplementation(JSocksProxy.this, socket));
 
 					} catch (final ProtocolException e) {
 						JSocksProxy.this.logger.log(Level.WARNING,
-								"Unknown SOCKS version requested by "
+								"Unknown SOCKS VERSION requested by "
 										+ StringUtils.formatSocket(socket), e);
 					} catch (final AccessDeniedException e) {
 						JSocksProxy.this.logger.log(
