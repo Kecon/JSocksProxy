@@ -36,17 +36,10 @@ public enum AddressType {
 	/** UDP Associate */
 	IP_V6((byte) 0x04);
 
+	private static final Map<Byte, AddressType> map;
+
 	private final byte value;
 
-	private AddressType(final byte value) {
-		this.value = value;
-	}
-
-	public byte getValue() {
-		return this.value;
-	}
-
-	private static final Map<Byte, AddressType> map;
 	static {
 		final Map<Byte, AddressType> commands = new HashMap<Byte, AddressType>();
 		for (final AddressType command : AddressType.values()) {
@@ -56,13 +49,21 @@ public enum AddressType {
 		map = Collections.unmodifiableMap(commands);
 	}
 
+	private AddressType(final byte value) {
+		this.value = value;
+	}
+
+	public byte getValue() {
+		return this.value;
+	}
+
 	public static AddressType valueOf(final Byte b)
 			throws IllegalAddressTypeException {
 		final AddressType command = AddressType.map.get(b);
 
 		if (command == null) {
-			throw new IllegalAddressTypeException("Unknown address type: 0x"
-					+ Integer.toHexString(b));
+			throw new IllegalAddressTypeException(
+					"Unknown address type: 0x" + Integer.toHexString(b));
 		}
 
 		return command;

@@ -460,11 +460,9 @@ public final class JSocksProxyAdmin extends JFrame
 		for (final JComponent component : components) {
 
 			final Dimension dimension = component.getMaximumSize();
-			if (dimension != null) {
-				if ((dimension.height > max)
-						&& (dimension.height != Integer.MAX_VALUE)) {
-					max = dimension.height;
-				}
+			if (dimension != null && (dimension.height > max)
+					&& (dimension.height != Integer.MAX_VALUE)) {
+				max = dimension.height;
 			}
 		}
 
