@@ -36,17 +36,10 @@ public enum Command {
 	/** UDP Associate */
 	UDP_ASSOCIATE((byte) 0x03);
 
+	private static final Map<Byte, Command> map;
+
 	private final byte value;
 
-	private Command(final byte value) {
-		this.value = value;
-	}
-
-	public byte getValue() {
-		return this.value;
-	}
-
-	private static final Map<Byte, Command> map;
 	static {
 		final Map<Byte, Command> commands = new HashMap<Byte, Command>();
 		for (final Command command : Command.values()) {
@@ -56,12 +49,21 @@ public enum Command {
 		map = Collections.unmodifiableMap(commands);
 	}
 
-	public static Command valueOf(final Byte b) throws IllegalCommandException {
+	private Command(final byte value) {
+		this.value = value;
+	}
+
+	public byte getValue() {
+		return this.value;
+	}
+
+	public static Command valueOf(final Byte b)
+			throws IllegalCommandException {
 		final Command command = Command.map.get(b);
 
 		if (command == null) {
-			throw new IllegalCommandException("Unknown command command: 0x"
-					+ Integer.toHexString(b));
+			throw new IllegalCommandException(
+					"Unknown command command: 0x" + Integer.toHexString(b));
 		}
 
 		return command;

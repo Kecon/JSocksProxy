@@ -64,8 +64,8 @@ import nu.najt.kecon.jsocksproxy.configuration.Listen;
  * @author Kenny Colliander Nordin
  * 
  */
-public final class JSocksProxyAdmin extends JFrame implements ActionListener,
-		WindowStateListener, Runnable {
+public final class JSocksProxyAdmin extends JFrame
+		implements ActionListener, WindowStateListener, Runnable {
 
 	private static final long serialVersionUID = 1646413716016720603L;
 
@@ -191,26 +191,30 @@ public final class JSocksProxyAdmin extends JFrame implements ActionListener,
 				+ this.getMaxSizeX(new JComponent[] { this.listenAddressLabel,
 						this.listenPortLabel });
 
-		final int listenTabRowHeight = this.getMaxSizeY(new JComponent[] {
-				this.listenAddressLabel, this.listenAddressTextField,
-				this.addListenButton });
+		final int listenTabRowHeight = this
+				.getMaxSizeY(new JComponent[] { this.listenAddressLabel,
+						this.listenAddressTextField, this.addListenButton });
 
 		this.setComponentPosition(listenTab, listenTabLayout,
-				JSocksProxyAdmin.PADDING_LEFT, this.getPosistion(
-						JSocksProxyAdmin.PADDING_TOP, listenTabRowHeight, 0),
+				JSocksProxyAdmin.PADDING_LEFT,
+				this.getPosistion(JSocksProxyAdmin.PADDING_TOP,
+						listenTabRowHeight, 0),
 				this.listenAddressLabel);
 		this.setComponentPosition(listenTab, listenTabLayout,
-				listenTabTextFieldX, this.getPosistion(
-						JSocksProxyAdmin.PADDING_TOP, listenTabRowHeight, 0),
+				listenTabTextFieldX,
+				this.getPosistion(JSocksProxyAdmin.PADDING_TOP,
+						listenTabRowHeight, 0),
 				this.listenAddressTextField);
 
 		this.setComponentPosition(listenTab, listenTabLayout,
-				JSocksProxyAdmin.PADDING_LEFT, this.getPosistion(
-						JSocksProxyAdmin.PADDING_TOP, listenTabRowHeight, 1),
+				JSocksProxyAdmin.PADDING_LEFT,
+				this.getPosistion(JSocksProxyAdmin.PADDING_TOP,
+						listenTabRowHeight, 1),
 				this.listenPortLabel);
 		this.setComponentPosition(listenTab, listenTabLayout,
-				listenTabTextFieldX, this.getPosistion(
-						JSocksProxyAdmin.PADDING_TOP, listenTabRowHeight, 1),
+				listenTabTextFieldX,
+				this.getPosistion(JSocksProxyAdmin.PADDING_TOP,
+						listenTabRowHeight, 1),
 				this.listenPortTextField);
 
 		final int listenButtonWidth = this.getMaxSizeX(new JComponent[] {
@@ -221,37 +225,42 @@ public final class JSocksProxyAdmin extends JFrame implements ActionListener,
 						+ JSocksProxyAdmin.PADDING_RIGHT + listenButtonWidth);
 		final int listenPaneSizeY = JSocksProxyAdmin.PANE_SIZE_Y
 				- (this.getPosistion(JSocksProxyAdmin.PADDING_TOP,
-						listenTabRowHeight, 3) + JSocksProxyAdmin.PADDING_BOTTOM);
+						listenTabRowHeight, 3)
+						+ JSocksProxyAdmin.PADDING_BOTTOM);
 
 		final JScrollPane listenPane = new JScrollPane(this.listenList);
-		listenPane.setPreferredSize(new Dimension(listenPaneSizeX,
-				listenPaneSizeY));
+		listenPane.setPreferredSize(
+				new Dimension(listenPaneSizeX, listenPaneSizeY));
 
 		this.setComponentPosition(listenTab, listenTabLayout,
-				JSocksProxyAdmin.PADDING_LEFT, this.getPosistion(
-						JSocksProxyAdmin.PADDING_TOP, listenTabRowHeight, 2),
+				JSocksProxyAdmin.PADDING_LEFT,
+				this.getPosistion(JSocksProxyAdmin.PADDING_TOP,
+						listenTabRowHeight, 2),
 				listenPane);
 
-		this.addListenButton.setPreferredSize(new Dimension(listenButtonWidth,
-				listenTabRowHeight));
+		this.addListenButton.setPreferredSize(
+				new Dimension(listenButtonWidth, listenTabRowHeight));
 		this.setComponentPosition(listenTab, listenTabLayout,
-				(JSocksProxyAdmin.PADDING_LEFT * 2) + listenPaneSizeX, this
-						.getPosistion(JSocksProxyAdmin.PADDING_TOP,
-								listenTabRowHeight, 1), this.addListenButton);
+				(JSocksProxyAdmin.PADDING_LEFT * 2) + listenPaneSizeX,
+				this.getPosistion(JSocksProxyAdmin.PADDING_TOP,
+						listenTabRowHeight, 1),
+				this.addListenButton);
 
-		this.removeListenButton.setPreferredSize(new Dimension(
-				listenButtonWidth, listenTabRowHeight));
+		this.removeListenButton.setPreferredSize(
+				new Dimension(listenButtonWidth, listenTabRowHeight));
 		this.setComponentPosition(listenTab, listenTabLayout,
-				(JSocksProxyAdmin.PADDING_LEFT * 2) + listenPaneSizeX, this
-						.getPosistion(JSocksProxyAdmin.PADDING_TOP,
-								listenTabRowHeight, 2), this.removeListenButton);
+				(JSocksProxyAdmin.PADDING_LEFT * 2) + listenPaneSizeX,
+				this.getPosistion(JSocksProxyAdmin.PADDING_TOP,
+						listenTabRowHeight, 2),
+				this.removeListenButton);
 
 		// Outgoing
 		final SpringLayout outgoingTabLayout = new SpringLayout();
 		outgoingTab.setLayout(outgoingTabLayout);
 
 		final int outgoingTabTextFieldX = (2 * JSocksProxyAdmin.PADDING_LEFT)
-				+ this.getMaxSizeX(new JComponent[] { this.outgoingAddressLabel });
+				+ this.getMaxSizeX(
+						new JComponent[] { this.outgoingAddressLabel });
 
 		this.setComponentPosition(outgoingTab, outgoingTabLayout,
 				JSocksProxyAdmin.PADDING_LEFT, JSocksProxyAdmin.PADDING_TOP,
@@ -267,54 +276,60 @@ public final class JSocksProxyAdmin extends JFrame implements ActionListener,
 		final int advancedTabTextFieldX = (JSocksProxyAdmin.PADDING_LEFT * 2)
 				+ this.getMaxSizeX(new JComponent[] { this.backlogLabel });
 
-		final int advancedTabRowHeight = this.getMaxSizeY(new JComponent[] {
-				this.backlogLabel, this.backlogTextField,
-				this.allowSocks4Checkbox, this.allowSocks4Label,
-				this.allowSocks5Checkbox, this.allowSocks5Label });
+		final int advancedTabRowHeight = this.getMaxSizeY(
+				new JComponent[] { this.backlogLabel, this.backlogTextField,
+						this.allowSocks4Checkbox, this.allowSocks4Label,
+						this.allowSocks5Checkbox, this.allowSocks5Label });
 
 		this.setComponentPosition(advancedTab, advancedTabLayout,
-				JSocksProxyAdmin.PADDING_LEFT, this.getPosistion(
-						JSocksProxyAdmin.PADDING_TOP, advancedTabRowHeight, 0),
+				JSocksProxyAdmin.PADDING_LEFT,
+				this.getPosistion(JSocksProxyAdmin.PADDING_TOP,
+						advancedTabRowHeight, 0),
 				this.backlogLabel);
 
 		this.setComponentPosition(advancedTab, advancedTabLayout,
-				advancedTabTextFieldX, this.getPosistion(
-						JSocksProxyAdmin.PADDING_TOP, advancedTabRowHeight, 0),
+				advancedTabTextFieldX,
+				this.getPosistion(JSocksProxyAdmin.PADDING_TOP,
+						advancedTabRowHeight, 0),
 				this.backlogTextField);
 
 		this.setComponentPosition(advancedTab, advancedTabLayout,
-				JSocksProxyAdmin.PADDING_LEFT, this.getPosistion(
-						JSocksProxyAdmin.PADDING_TOP, advancedTabRowHeight, 1),
+				JSocksProxyAdmin.PADDING_LEFT,
+				this.getPosistion(JSocksProxyAdmin.PADDING_TOP,
+						advancedTabRowHeight, 1),
 				this.allowSocks4Label);
 
 		this.setComponentPosition(advancedTab, advancedTabLayout,
-				advancedTabTextFieldX, this.getPosistion(
-						JSocksProxyAdmin.PADDING_TOP, advancedTabRowHeight, 1),
+				advancedTabTextFieldX,
+				this.getPosistion(JSocksProxyAdmin.PADDING_TOP,
+						advancedTabRowHeight, 1),
 				this.allowSocks4Checkbox);
 
 		this.setComponentPosition(advancedTab, advancedTabLayout,
-				JSocksProxyAdmin.PADDING_LEFT, this.getPosistion(
-						JSocksProxyAdmin.PADDING_TOP, advancedTabRowHeight, 2),
+				JSocksProxyAdmin.PADDING_LEFT,
+				this.getPosistion(JSocksProxyAdmin.PADDING_TOP,
+						advancedTabRowHeight, 2),
 				this.allowSocks5Label);
 
 		this.setComponentPosition(advancedTab, advancedTabLayout,
-				advancedTabTextFieldX, this.getPosistion(
-						JSocksProxyAdmin.PADDING_TOP, advancedTabRowHeight, 2),
+				advancedTabTextFieldX,
+				this.getPosistion(JSocksProxyAdmin.PADDING_TOP,
+						advancedTabRowHeight, 2),
 				this.allowSocks5Checkbox);
 
 		// OK and Cancel buttons
 		final JPanel buttonPanel = new JPanel();
 
-		final int buttonWidth = this.getMaxSizeX(new JComponent[] {
-				this.okButton, this.cancelButton });
+		final int buttonWidth = this.getMaxSizeX(
+				new JComponent[] { this.okButton, this.cancelButton });
 
-		final int buttonHeight = this.getMaxSizeY(new JComponent[] {
-				this.okButton, this.cancelButton });
+		final int buttonHeight = this.getMaxSizeY(
+				new JComponent[] { this.okButton, this.cancelButton });
 
 		this.okButton
 				.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
-		this.cancelButton.setPreferredSize(new Dimension(buttonWidth,
-				buttonHeight));
+		this.cancelButton
+				.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
 
 		buttonPanel.add(this.okButton);
 		buttonPanel.add(this.cancelButton);
@@ -423,11 +438,9 @@ public final class JSocksProxyAdmin extends JFrame implements ActionListener,
 		for (final JComponent component : components) {
 
 			final Dimension dimension = component.getMaximumSize();
-			if (dimension != null) {
-				if ((dimension.width > max)
-						&& (dimension.width != Integer.MAX_VALUE)) {
-					max = dimension.width;
-				}
+			if (dimension != null && (dimension.width > max)
+					&& (dimension.width != Integer.MAX_VALUE)) {
+				max = dimension.width;
 			}
 		}
 
@@ -465,9 +478,10 @@ public final class JSocksProxyAdmin extends JFrame implements ActionListener,
 			if (this.saveConfiguration()) {
 				this.dispose();
 			} else {
-				JOptionPane.showMessageDialog(this, this.resourceBundle
-						.getString("dialog.saveFailed"), this.resourceBundle
-						.getString("dialog.saveFailed.title"),
+				JOptionPane.showMessageDialog(this,
+						this.resourceBundle.getString("dialog.saveFailed"),
+						this.resourceBundle
+								.getString("dialog.saveFailed.title"),
 						JOptionPane.ERROR_MESSAGE);
 			}
 		} else if (event.getSource() == this.cancelButton) {
@@ -530,17 +544,18 @@ public final class JSocksProxyAdmin extends JFrame implements ActionListener,
 
 			this.configuration = (Configuration) unmarshaller.unmarshal(file);
 
-			this.outgoingAddressTextField.setText(this.configuration
-					.getOutgoingAddresses().get(0)); // TODO: fix!!
+			this.outgoingAddressTextField
+					.setText(this.configuration.getOutgoingAddresses().get(0)); // TODO:
+																				// fix!!
 
-			this.backlogTextField.setText(Integer.toString(this.configuration
-					.getBacklog()));
+			this.backlogTextField.setText(
+					Integer.toString(this.configuration.getBacklog()));
 
-			this.allowSocks4Checkbox.setSelected(this.configuration
-					.isAllowSocks4());
+			this.allowSocks4Checkbox
+					.setSelected(this.configuration.isAllowSocks4());
 
-			this.allowSocks5Checkbox.setSelected(this.configuration
-					.isAllowSocks5());
+			this.allowSocks5Checkbox
+					.setSelected(this.configuration.isAllowSocks5());
 
 		} catch (final JAXBException e) {
 			return false;
@@ -554,22 +569,22 @@ public final class JSocksProxyAdmin extends JFrame implements ActionListener,
 	 * Save configuration
 	 */
 	private boolean saveConfiguration() {
-		this.configuration
-				.setOutgoingAddresses(Arrays
-						.asList(new String[] { this.outgoingAddressTextField
-								.getText() })); // TODO: fix!!
+		this.configuration.setOutgoingAddresses(Arrays.asList(
+				new String[] { this.outgoingAddressTextField.getText() })); // TODO:
+																			// fix!!
 		try {
-			this.configuration.setBacklog(Integer
-					.parseInt(this.backlogTextField.getText()));
+			this.configuration.setBacklog(
+					Integer.parseInt(this.backlogTextField.getText()));
 		} catch (final NumberFormatException e) {
 			this.configuration.setBacklog(100);
 		}
 
-		this.outgoingAddressTextField.setText(this.configuration
-				.getOutgoingAddresses().get(0)); // TODO: fix!!
+		this.outgoingAddressTextField
+				.setText(this.configuration.getOutgoingAddresses().get(0)); // TODO:
+																			// fix!!
 
-		this.backlogTextField.setText(Integer.toString(this.configuration
-				.getBacklog()));
+		this.backlogTextField
+				.setText(Integer.toString(this.configuration.getBacklog()));
 
 		this.configuration
 				.setAllowSocks4(this.allowSocks4Checkbox.isSelected());
@@ -675,7 +690,8 @@ public final class JSocksProxyAdmin extends JFrame implements ActionListener,
 
 			fileChooser.addChoosableFileFilter(new CustomFileFilter());
 
-			if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+			if (fileChooser
+					.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
 
 				final File selectedFile = fileChooser.getSelectedFile();
 

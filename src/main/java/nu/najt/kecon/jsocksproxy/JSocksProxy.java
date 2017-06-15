@@ -65,7 +65,7 @@ public class JSocksProxy
 
 	public static final String CONFIGURATION_XML = "jsocksproxy.xml";
 
-	final Logger logger = Logger.getLogger(this.getClass().getName());
+	private final Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private final List<InetSocketAddress> listeningAddresses = new ArrayList<InetSocketAddress>();
 
@@ -91,12 +91,6 @@ public class JSocksProxy
 	private String configurationBasePathPropertyKey;
 
 	private final Map<String, Object> contextMap = new HashMap<String, Object>();
-
-	/**
-	 * Constructor
-	 */
-	public JSocksProxy() {
-	}
 
 	/**
 	 * The main method for this SocksImplementation.
@@ -291,33 +285,14 @@ public class JSocksProxy
 	/**
 	 * Reading and update configuration from configuration.xml
 	 */
-	void readConfiguration() {
+	protected void readConfiguration() {
 
 		final File file;
 		URI basePath = null;
 
-		if (this.configurationBasePathPropertyKey != null) {
-			try {
-				basePath = new URL(System
-						.getProperty(this.configurationBasePathPropertyKey))
-								.toURI();
-			} catch (final Exception e) {
-				basePath = null;
-			}
-		}
+		basePath = this.getBasePath(basePath);
 
-		if (basePath == null) {
-			file = new File(JSocksProxy.CONFIGURATION_XML);
-		} else {
-
-			final File basePathFile = new File(basePath);
-
-			if (basePathFile.isDirectory()) {
-				file = new File(basePathFile, JSocksProxy.CONFIGURATION_XML);
-			} else {
-				file = basePathFile;
-			}
-		}
+		file = this.getConfigurationFile(basePath);
 
 		if (!file.isFile()) {
 			this.logger.warning("Failed to read configuration from "
@@ -333,17 +308,7 @@ public class JSocksProxy
 			this.logger.log(Level.FINE, "Reading configuration");
 		}
 
-		try {
-			final JAXBContext context = JAXBContext
-					.newInstance(Configuration.class);
-			final Unmarshaller unmarshaller = context.createUnmarshaller();
-
-			this.configuration = (Configuration) unmarshaller.unmarshal(file);
-
-		} catch (final JAXBException e) {
-			this.logger.log(Level.WARNING, "Failed to read configuration", e);
-			return;
-		}
+		this.readConfigurationFromFile(file);
 
 		this.configurationFileModified = file.lastModified();
 
@@ -354,7 +319,64 @@ public class JSocksProxy
 		}
 
 		this.listeningAddresses.clear();
+		this.updateOutgoingAddresses();
+		this.updateListenAddresses();
+		this.updateBacklog();
+	}
 
+	private void updateBacklog() {
+		if ((this.configuration.getBacklog() <= 0)
+				|| (this.configuration.getBacklog() > 100)) {
+			this.logger
+					.config("Backlog value must be between 0 and 101; supplied value: "
+							+ this.configuration.getBacklog()
+							+ "; using default 100");
+			this.backlog = 100;
+		} else {
+			this.backlog = this.configuration.getBacklog();
+			this.logger.config("Using backlog " + this.backlog);
+		}
+	}
+
+	private void updateListenAddresses() {
+		for (final Listen listen : this.configuration.getListen()) {
+
+			int port = -1;
+			InetAddress address = null;
+
+			try {
+				address = InetAddress.getByName(listen.getAddress());
+			} catch (final UnknownHostException e) {
+				this.logger.log(Level.WARNING,
+						"Failed to resolve " + listen.getAddress(), e);
+				continue;
+			}
+
+			port = listen.getPort();
+			if ((port <= 0) || (port >= 65536)) {
+				this.logger.warning("Invalid port number: " + port);
+				continue;
+			}
+
+			try {
+				final InetSocketAddress inetSocketAddress = new InetSocketAddress(
+						address, port);
+				this.listeningAddresses.add(inetSocketAddress);
+
+				this.logger.config("Added listening address "
+						+ StringUtils.formatSocketAddress(inetSocketAddress));
+
+			} catch (final IllegalArgumentException e) {
+				this.logger.log(
+						Level.WARNING, "Failed to create address "
+								+ listen.getAddress() + ":" + listen.getPort(),
+						e);
+				continue;
+			}
+		}
+	}
+
+	private void updateOutgoingAddresses() {
 		if ((this.configuration.getOutgoingAddresses() != null)
 				&& !this.configuration.getOutgoingAddresses().isEmpty()) {
 
@@ -400,54 +422,49 @@ public class JSocksProxy
 
 		this.logger.config("Using outgoing source addresses: " + builder);
 		this.logger.info("Using outgoing source addresses: " + builder);
+	}
 
-		for (final Listen listen : this.configuration.getListen()) {
+	private void readConfigurationFromFile(final File file) {
+		try {
+			final JAXBContext context = JAXBContext
+					.newInstance(Configuration.class);
+			final Unmarshaller unmarshaller = context.createUnmarshaller();
 
-			int port = -1;
-			InetAddress address = null;
+			this.configuration = (Configuration) unmarshaller.unmarshal(file);
 
-			try {
-				address = InetAddress.getByName(listen.getAddress());
-			} catch (final UnknownHostException e) {
-				this.logger.log(Level.WARNING,
-						"Failed to resolve " + listen.getAddress(), e);
-				continue;
-			}
-
-			port = listen.getPort();
-			if ((port <= 0) || (port >= 65536)) {
-				this.logger.warning("Invalid port number: " + port);
-				continue;
-			}
-
-			try {
-				final InetSocketAddress inetSocketAddress = new InetSocketAddress(
-						address, port);
-				this.listeningAddresses.add(inetSocketAddress);
-
-				this.logger.config("Added listening address "
-						+ StringUtils.formatSocketAddress(inetSocketAddress));
-
-			} catch (final IllegalArgumentException e) {
-				this.logger.log(
-						Level.WARNING, "Failed to create address "
-								+ listen.getAddress() + ":" + listen.getPort(),
-						e);
-				continue;
-			}
+		} catch (final JAXBException e) {
+			this.logger.log(Level.WARNING, "Failed to read configuration", e);
 		}
+	}
 
-		if ((this.configuration.getBacklog() <= 0)
-				|| (this.configuration.getBacklog() > 100)) {
-			this.logger
-					.config("Backlog value must be between 0 and 101; supplied value: "
-							+ this.configuration.getBacklog()
-							+ "; using default 100");
-			this.backlog = 100;
+	private File getConfigurationFile(URI basePath) {
+		final File file;
+		if (basePath == null) {
+			file = new File(JSocksProxy.CONFIGURATION_XML);
 		} else {
-			this.backlog = this.configuration.getBacklog();
-			this.logger.config("Using backlog " + this.backlog);
+
+			final File basePathFile = new File(basePath);
+
+			if (basePathFile.isDirectory()) {
+				file = new File(basePathFile, JSocksProxy.CONFIGURATION_XML);
+			} else {
+				file = basePathFile;
+			}
 		}
+		return file;
+	}
+
+	private URI getBasePath(URI basePath) {
+		if (this.configurationBasePathPropertyKey != null) {
+			try {
+				basePath = new URL(System
+						.getProperty(this.configurationBasePathPropertyKey))
+								.toURI();
+			} catch (final Exception e) {
+				basePath = null;
+			}
+		}
+		return basePath;
 	}
 
 	/**

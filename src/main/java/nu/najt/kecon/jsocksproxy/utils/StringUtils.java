@@ -33,14 +33,14 @@ public class StringUtils {
 	 * @param inetSocketAddress
 	 *            the address that should be represented
 	 * @return the string representation
-	 * @throws NullPointerException
+	 * @throws IllegalArgumentException
 	 *             if inetSocketAddress is null
 	 */
 	public static String formatSocketAddress(
 			final InetSocketAddress inetSocketAddress) {
 
 		if (inetSocketAddress == null) {
-			throw new NullPointerException("inetSocketAddress");
+			throw new IllegalArgumentException("inetSocketAddress");
 		}
 
 		final StringBuilder builder = new StringBuilder();
@@ -67,13 +67,13 @@ public class StringUtils {
 	 * @param socket
 	 *            the address that should be represented
 	 * @return the string representation
-	 * @throws NullPointerException
+	 * @throws IllegalArgumentException
 	 *             if socket is null
 	 */
 	public static String formatSocket(final Socket socket) {
 
 		if (socket == null) {
-			throw new NullPointerException("socket");
+			throw new IllegalArgumentException("socket");
 		}
 
 		final StringBuilder builder = new StringBuilder();
@@ -99,13 +99,13 @@ public class StringUtils {
 	 * @param socket
 	 *            the address that should be represented
 	 * @return the string representation
-	 * @throws NullPointerException
+	 * @throws IllegalArgumentException
 	 *             if socket is null
 	 */
 	public static String formatSocket(final ServerSocket socket) {
 
 		if (socket == null) {
-			throw new NullPointerException("socket");
+			throw new IllegalArgumentException("socket");
 		}
 
 		final StringBuilder builder = new StringBuilder();

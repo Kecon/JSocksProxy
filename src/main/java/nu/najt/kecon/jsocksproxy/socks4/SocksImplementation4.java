@@ -80,11 +80,7 @@ public class SocksImplementation4 extends AbstractSocksImplementation {
 			outputStream = new DataOutputStream(this.getClientSocket()
 					.getOutputStream());
 
-			final Command command = Command.valueOf(inputStream.readByte());
-
-			if (command != Command.CONNECT) {
-				throw new IllegalCommandException("Unknown command: " + command);
-			}
+			checkCommand(inputStream);
 
 			port = inputStream.readShort() & 0xFFFF;
 
@@ -190,6 +186,15 @@ public class SocksImplementation4 extends AbstractSocksImplementation {
 				outputStream.close();
 			} catch (final Exception e) {
 			}
+		}
+	}
+
+	private void checkCommand(DataInputStream inputStream)
+			throws IllegalCommandException, IOException {
+		final Command command = Command.valueOf(inputStream.readByte());
+
+		if (command != Command.CONNECT) {
+			throw new IllegalCommandException("Unknown command: " + command);
 		}
 	}
 }

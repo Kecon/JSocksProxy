@@ -85,12 +85,7 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 
 			this.authenticate(inputStream, outputStream);
 
-			final byte socksVersion = inputStream.readByte();
-
-			if (socksVersion != SocksImplementation5.PROTOCOL_VERSION) {
-				throw new ProtocolException("Unsupported version: 0x"
-						+ Integer.toHexString(socksVersion));
-			}
+			readVersion(inputStream);
 
 			final Command command = Command.valueOf(inputStream.readByte());
 			final byte[] hostname;
@@ -228,15 +223,8 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 						null, 0);
 			} catch (final IOException ioe) {
 			}
-		} catch (final ProtocolException e) {
+		} catch (final ProtocolException | IllegalCommandException e) {
 			try {
-				this.writeResponse(outputStream, Status.COMMAND_NOT_SUPPORTED,
-						addressType, null, null, 0);
-			} catch (final IOException ioe) {
-			}
-		} catch (final IllegalCommandException e) {
-			try {
-				this.logger.log(Level.INFO, e.getMessage(), e);
 				this.writeResponse(outputStream, Status.COMMAND_NOT_SUPPORTED,
 						addressType, null, null, 0);
 			} catch (final IOException ioe) {
@@ -280,7 +268,17 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 		}
 	}
 
-	void authenticate(final DataInputStream inputStream,
+	private void readVersion(DataInputStream inputStream)
+			throws IOException, ProtocolException {
+		final byte socksVersion = inputStream.readByte();
+
+		if (socksVersion != SocksImplementation5.PROTOCOL_VERSION) {
+			throw new ProtocolException("Unsupported version: 0x"
+					+ Integer.toHexString(socksVersion));
+		}
+	}
+
+	protected void authenticate(final DataInputStream inputStream,
 			final DataOutputStream outputStream) throws IOException {
 		final int numberOfAuthMethods = inputStream.readByte() & 0xFF;
 
@@ -327,7 +325,7 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 	 *            the port
 	 * @throws IOException
 	 */
-	void writeResponse(final DataOutputStream outputStream,
+	protected void writeResponse(final DataOutputStream outputStream,
 			final Status status, final AddressType addressType,
 			final InetAddress boundAddress, final byte[] hostname,
 			final int port) throws IOException {

@@ -36,15 +36,15 @@ import static org.mockito.Mockito.*;
 public class TunnelThreadTest {
 
 	@Mock
-	CountDownLatch countDownLatch;
+	private CountDownLatch countDownLatch;
 
 	@Mock
-	Socket inputSocket;
+	private Socket inputSocket;
 
 	@Mock
-	Socket outputSocket;
+	private Socket outputSocket;
 
-	TunnelThread tunnelThread;
+	private TunnelThread tunnelThread;
 
 	private static final byte[] DATA = "Happy Panda"
 			.getBytes(StandardCharsets.UTF_8);
