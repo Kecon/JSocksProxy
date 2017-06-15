@@ -1,5 +1,5 @@
 /**
- * JSocksProxy Copyright (c) 2006-2012 Kenny Colliander Nordin
+ * JSocksProxy Copyright (c) 2006-2017 Kenny Colliander Nordin
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ public class SocksImplementation4 extends AbstractSocksImplementation {
 
 	protected static final byte NULL = 0x00;
 
-	private static final Logger staticLogger = Logger
+	private static final Logger LOG = Logger
 			.getLogger("nu.najt.kecon.jsocksproxy.socks4");
 
 	/**
@@ -64,7 +64,7 @@ public class SocksImplementation4 extends AbstractSocksImplementation {
 	 */
 	public SocksImplementation4(final ConfigurationFacade configurationFacade,
 			final Socket socket, final Executor executor) {
-		super(configurationFacade, socket, SocksImplementation4.staticLogger,
+		super(configurationFacade, socket, SocksImplementation4.LOG,
 				executor);
 	}
 
