@@ -454,17 +454,17 @@ public class JSocksProxy
 		return file;
 	}
 
-	private URI getBasePath(URI basePath) {
+	private URI getBasePath(URI uri) {
 		if (this.configurationBasePathPropertyKey != null) {
 			try {
-				basePath = new URL(System
+				uri = new URL(System
 						.getProperty(this.configurationBasePathPropertyKey))
 								.toURI();
 			} catch (final Exception e) {
-				basePath = null;
+				uri = null;
 			}
 		}
-		return basePath;
+		return uri;
 	}
 
 	/**
