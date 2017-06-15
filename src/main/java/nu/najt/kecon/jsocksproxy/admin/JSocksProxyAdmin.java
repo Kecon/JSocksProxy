@@ -97,7 +97,7 @@ public final class JSocksProxyAdmin extends JFrame implements ActionListener,
 
 	private final JButton cancelButton = new JButton();
 
-	private final JList listenList = new JList();
+	private final JList<String> listenList = new JList<>();
 
 	private final JButton addListenButton = new JButton();
 
