@@ -48,7 +48,7 @@ public abstract class AbstractSocksImplementation
 
 	private final Executor executor;
 
-	final CountDownLatch countDownLatch = new CountDownLatch(1);
+	private final CountDownLatch countDownLatch = new CountDownLatch(1);
 
 	/**
 	 * Constructor
