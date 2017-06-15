@@ -288,9 +288,7 @@ public class JSocksProxy
 	protected void readConfiguration() {
 
 		final File file;
-		URI basePath = null;
-
-		basePath = this.getBasePath(basePath);
+		URI basePath = this.getBasePath();
 
 		file = this.getConfigurationFile(basePath);
 
@@ -454,14 +452,14 @@ public class JSocksProxy
 		return file;
 	}
 
-	private URI getBasePath(URI uri) {
+	private URI getBasePath() {
+		URI uri = null;
 		if (this.configurationBasePathPropertyKey != null) {
 			try {
 				uri = new URL(System
 						.getProperty(this.configurationBasePathPropertyKey))
 								.toURI();
 			} catch (final Exception e) {
-				uri = null;
 			}
 		}
 		return uri;
