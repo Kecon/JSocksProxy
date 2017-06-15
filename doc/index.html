@@ -66,8 +66,8 @@ span.sysfont {
 </head>
 <body>
 <div style="width: 800px; padding-left: 15px; padding-top: 10px;">
-<div style="font-weight: bold; font-size: 16pt; display: block">JSocksProxy 2</div>
-<div class="copyright">Copyright &copy; 2006-2008 Kenny Colliander
+<div style="font-weight: bold; font-size: 16pt; display: block">JSocksProxy 3</div>
+<div class="copyright">Copyright &copy; 2006-2017 Kenny Colliander
 Nordin</div>
 
 <div class="h1">1. Introduction</div>
@@ -82,7 +82,7 @@ connections and has no support for authentication. IPv6 should be
 supported for version 5, but it's not tested.
 <br />
 <br />
-The proxy can be installed as a Pojo or as an JBoss MBean service.
+The proxy can be installed as a Pojo.
 
 <div class="h1">2. License<a name="configuration" /></div>
 
@@ -175,30 +175,16 @@ The home page for this project is <a
 	href="http://kecon.najt.nu/jsocksproxy/download/">http://kecon.najt.nu/jsocksproxy/download/</a>.
 
 <div class="h1">5. Requirements</div>
-JSocksProxy requires <a href="http://java.sun.com/">Java 6 SE</a> or later,
-which can be downloaded from <a href="http://java.sun.com/">http://java.sun.com/</a>.
+JSocksProxy requires <a href="https://java.com/en/download/">Java 8 SE</a> or later,
+which can be downloaded from <a href="https://java.com/en/download/">https://java.com/en/download/</a>.
 
 <div class="h1">6. Install</div>
-The JSocksProxy can be installed in two ways from this distribution. You can either install it as a Pojo (Plain Old Java Object)
-or install it as a MBean in the JBoss application server.
+The JSocksProxy can be installed in two ways from this distribution. You can either install it as a Pojo (Plain Old Java Object).
 
-<div class="h2">6.1 JBoss Install</div>
-This is the easiest way to install the JSocksProxy. This install assume that you have Java 1.6 and JBoss 4.0 or later installed.
-<ol>
-	<li>Copy <span class="sysfont">conf/jsocksproxy.xml</span> 
-		into the <span class="sysfont">${jboss.home}/server/${jboss.server.name}/conf/</span> directory</li>
-	<li>Next step is to configure <a href="#jsocksproxy.xml">jsocksproxy.xml</a>, read more about
-	the settings under <a href="#configuration">configuration</a></li>
-	<li>Copy <span class="sysfont">dist/jsocksproxy.sar</span> 
-		into the <span class="sysfont">${jboss.home}/server/${jboss.server.name}/deploy/</span> directory</li>
-		
-</ol>
-The application should auto deploy and stop when you shutdown the application server.
-
-<div class="h2">6.2 Pojo Install</div>
+<div class="h2">6.1 Pojo Install</div>
 The install procedure may be difficult if you don't have any Java
 experience. A simplified install procedure may be fixed in the future.
-This install assume that you have Java 1.6 installed.
+This install assume that you have Java 1.8 installed.
 <ol>
 	<li>Unzip dist/jsocksproxy.zip into a prefered installation
 	directory. You should get a install structure like:<br />
@@ -226,10 +212,16 @@ This install assume that you have Java 1.6 installed.
 
 
 <div class="h1">7. Compile</div>
-You will need Java 6 SDK and Ant to build this project.
+You will need Java 8 SDK and Ant to build this project.
 <div class="h1">8. Changes</div>
 Documented changes.
-<div class="h2">8.1 Changes between 1.0 and 2.0</div>
+<div class="h2">8.1 Changes between 2.0 and 3.0</div>
+<ul>
+	<li>Changed build environment from Ant to Maven.</li>
+	<li>Updated from Java 1.6 to Java 1.8.</li>
+	<li>Removed support for JBoss MBeans.</li>
+</ul>
+<div class="h2">8.2 Changes between 1.0 and 2.0</div>
 <ul>
 	<li>Replaced Log4J with Java's built-in logging.</li>
 	<li>Changed XML format and is now using JAXB.</li>

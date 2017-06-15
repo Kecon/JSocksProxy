@@ -1,5 +1,5 @@
 /**
- * JSocksProxy Copyright (c) 2006-2012 Kenny Colliander Nordin
+ * JSocksProxy Copyright (c) 2006-2017 Kenny Colliander Nordin
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.util.List;
  * Contains methods for accessing the running configuration
  * 
  * @author Kenny Colliander Nordin
- * 
  */
 public interface ConfigurationFacade {
 	/**
@@ -39,4 +38,11 @@ public interface ConfigurationFacade {
 	 * @return true if SOCKS version 5 is allowed
 	 */
 	public boolean isAllowSocks5();
+
+	/**
+	 * @return the backlog
+	 * @since 3.0
+	 */
+	public int getBacklog();
+
 }

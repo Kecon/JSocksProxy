@@ -2,3 +2,6 @@ bin
 lib
 jsocksproxy.xml
 /.project
+/target/
+/.settings/
+/.classpath
