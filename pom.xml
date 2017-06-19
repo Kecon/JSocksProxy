@@ -15,6 +15,7 @@
 	</properties>
 
 	<dependencies>
+		<!-- Testing -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -26,6 +27,12 @@
 			<artifactId>mockito-core</artifactId>
 			<version>[2.8.9,)</version>
 			<scope>test</scope>
+		</dependency>
+		<!-- Logging -->
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.0.13</version>
 		</dependency>
 	</dependencies>
 
