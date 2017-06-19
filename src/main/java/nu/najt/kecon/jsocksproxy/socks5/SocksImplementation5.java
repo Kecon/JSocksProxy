@@ -78,6 +78,8 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 		String host = null;
 
 		try {
+			this.setup();
+			
 			// Handshake
 			inputStream = new DataInputStream(this.getClientInputStream());
 			outputStream = new DataOutputStream(
@@ -129,12 +131,8 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 
 			if (command == Command.CONNECT) {
 				try {
-
-					this.logger.trace("Connecting to {}:{}...", host, port);
 					clientSocket = this.openConnection(remoteInetAddress,
 							port);
-					this.logger.debug("Connected");
-
 				} catch (final IOException e) {
 					this.logger.info("Failed to connect to: {}:{}", host,
 							port);
@@ -171,9 +169,6 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 						clientSocket.getPort());
 
 				this.tunnel(this.getClientSocket(), clientSocket);
-
-				this.logger.debug("Disconnected");
-
 			} else {
 				throw new IllegalCommandException(
 						"Unknown command: " + command);
@@ -236,6 +231,8 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 				} catch (final IOException e) {
 				}
 			}
+
+			this.cleanup();
 		}
 	}
 

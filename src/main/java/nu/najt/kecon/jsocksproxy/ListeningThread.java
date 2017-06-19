@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -74,9 +75,7 @@ class ListeningThread implements Runnable {
 		this.logger = logger;
 		this.executorService = executorService;
 		this.inetSocketAddress = inetSocketAddress;
-
-		MDC.clear();
-
+		MDC.setContextMap(new HashMap<>());
 		MDC.put(LoggingConstants.SOCKS_SERVER,
 				formatSocketAddress(inetSocketAddress));
 
@@ -122,8 +121,6 @@ class ListeningThread implements Runnable {
 		} finally {
 			this.logger.info("Shutdown SOCKS proxy for {}",
 					formatSocketAddress(this.inetSocketAddress));
-
-			MDC.clear();
 		}
 	}
 

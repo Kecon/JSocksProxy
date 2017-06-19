@@ -74,6 +74,8 @@ public class SocksImplementation4 extends AbstractSocksImplementation {
 		String host = null;
 		int port = -1;
 		try {
+			this.setup();
+			
 			inputStream = new DataInputStream(
 					this.getClientSocket().getInputStream());
 			outputStream = new DataOutputStream(
@@ -116,9 +118,7 @@ public class SocksImplementation4 extends AbstractSocksImplementation {
 
 			final Socket hostSocket;
 			try {
-				this.logger.debug("Connecting to {}:{}... ", host, port);
 				hostSocket = this.openConnection(inetAddress, port);
-				this.logger.trace("Connected to {}:{}", host, port);
 
 			} catch (final IOException e) {
 				this.logger.info("Failed to connected to {}:{}, result 0x{}",
@@ -147,8 +147,6 @@ public class SocksImplementation4 extends AbstractSocksImplementation {
 			outputStream.write(response.array());
 			outputStream.flush();
 
-			this.logger.info("Established connection");
-
 			this.tunnel(this.getClientSocket(), hostSocket);
 
 		} catch (final Exception e) {
@@ -164,6 +162,8 @@ public class SocksImplementation4 extends AbstractSocksImplementation {
 				outputStream.close();
 			} catch (final Exception e) {
 			}
+
+			this.cleanup();
 		}
 	}
 

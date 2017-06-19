@@ -44,6 +44,7 @@ import javax.xml.bind.Unmarshaller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import nu.najt.kecon.jsocksproxy.configuration.Configuration;
 import nu.najt.kecon.jsocksproxy.configuration.Listen;
@@ -176,6 +177,8 @@ public class JSocksProxy
 
 	@Override
 	public void run() {
+		MDC.setContextMap(Collections.emptyMap());
+
 		this.logger.info("Starting SOCKS Proxy {}", JSocksProxy.VERSION);
 
 		synchronized (this) {

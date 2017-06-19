@@ -16,7 +16,8 @@
 package nu.najt.kecon.jsocksproxy;
 
 import static nu.najt.kecon.jsocksproxy.utils.SocketUtils.copy;
-import static nu.najt.kecon.jsocksproxy.utils.StringUtils.*;
+import static nu.najt.kecon.jsocksproxy.utils.StringUtils.formatLocalSocket;
+import static nu.najt.kecon.jsocksproxy.utils.StringUtils.formatSocket;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +25,7 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 
@@ -69,11 +71,19 @@ public abstract class AbstractSocksImplementation
 		this.configurationFacade = configurationFacade;
 		this.logger = logger;
 		this.executor = executor;
+	}
 
-		MDC.clear();
+	protected void setup() {
+		MDC.setContextMap(Collections.emptyMap());
 		MDC.put(LoggingConstants.SOCKS_SERVER,
 				formatLocalSocket(clientSocket));
 		MDC.put(LoggingConstants.CLIENT, formatSocket(clientSocket));
+	}
+
+	protected void cleanup() {
+		MDC.remove(LoggingConstants.SOCKS_SERVER);
+		MDC.remove(LoggingConstants.CLIENT);
+		MDC.remove(LoggingConstants.REMOTE_SERVER);
 	}
 
 	/**
@@ -88,6 +98,8 @@ public abstract class AbstractSocksImplementation
 	 */
 	protected Socket openConnection(final InetAddress inetAddress,
 			final int port) throws IOException {
+		this.logger.debug("Connecting to {}:{}... ",
+				inetAddress.getHostAddress(), port);
 
 		for (final InetAddress localInetAddress : this.configurationFacade
 				.getOutgoingSourceAddresses()) {
@@ -98,6 +110,7 @@ public abstract class AbstractSocksImplementation
 				socket.setTcpNoDelay(true);
 
 				MDC.put(LoggingConstants.REMOTE_SERVER, formatSocket(socket));
+				this.logger.trace("Connected");
 				return socket;
 			}
 		}
