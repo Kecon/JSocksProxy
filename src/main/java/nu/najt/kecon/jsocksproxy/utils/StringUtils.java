@@ -102,6 +102,38 @@ public class StringUtils {
 	 * @throws IllegalArgumentException
 	 *             if socket is null
 	 */
+	public static String formatLocalSocket(final Socket socket) {
+
+		if (socket == null) {
+			throw new IllegalArgumentException("socket");
+		}
+
+		final StringBuilder builder = new StringBuilder();
+
+		final InetAddress inetAddress = socket.getLocalAddress();
+
+		if (inetAddress instanceof Inet6Address) {
+			builder.append("[");
+			builder.append(inetAddress.getHostAddress());
+			builder.append("]");
+		} else {
+			builder.append(inetAddress.getHostAddress());
+		}
+		builder.append(":");
+		builder.append(socket.getLocalPort());
+
+		return builder.toString();
+	}
+
+	/**
+	 * Create a string representation of a {@link Socket}
+	 * 
+	 * @param socket
+	 *            the address that should be represented
+	 * @return the string representation
+	 * @throws IllegalArgumentException
+	 *             if socket is null
+	 */
 	public static String formatSocket(final ServerSocket socket) {
 
 		if (socket == null) {

@@ -26,15 +26,15 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.concurrent.Executor;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import nu.najt.kecon.jsocksproxy.AbstractSocksImplementation;
 import nu.najt.kecon.jsocksproxy.ConfigurationFacade;
 import nu.najt.kecon.jsocksproxy.IllegalAddressTypeException;
 import nu.najt.kecon.jsocksproxy.IllegalCommandException;
 import nu.najt.kecon.jsocksproxy.ProtocolException;
-import nu.najt.kecon.jsocksproxy.utils.StringUtils;
 
 /**
  * This is the SOCKS5 implementation.<br>
@@ -50,8 +50,8 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 
 	private static final byte PROTOCOL_VERSION = 0x05;
 
-	private static final Logger LOG = Logger
-			.getLogger("nu.najt.kecon.jsocksproxy.socks5");
+	private static final Logger LOG = LoggerFactory
+			.getLogger(SocksImplementation5.class.getPackage().getName());
 
 	/**
 	 * Constructor
@@ -78,6 +78,8 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 		String host = null;
 
 		try {
+			this.setup();
+			
 			// Handshake
 			inputStream = new DataInputStream(this.getClientInputStream());
 			outputStream = new DataOutputStream(
@@ -129,22 +131,11 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 
 			if (command == Command.CONNECT) {
 				try {
-
-					if (this.logger.isLoggable(Level.FINE)) {
-						this.logger.fine(
-								"Connecting to " + host + ":" + port + "...");
-					}
-
 					clientSocket = this.openConnection(remoteInetAddress,
 							port);
-
-					if (this.logger.isLoggable(Level.FINE)) {
-						this.logger.fine("Connected to " + host + ":" + port);
-					}
-
 				} catch (final IOException e) {
-					this.logger.info(
-							"Failed to connect to: " + host + ":" + port);
+					this.logger.info("Failed to connect to: {}:{}", host,
+							port);
 					this.writeResponse(outputStream, Status.HOST_UNREACHABLE,
 							addressType, remoteInetAddress, hostname, port);
 					return;
@@ -156,10 +147,7 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 
 				this.tunnel(this.getClientSocket(), clientSocket);
 
-				if (this.logger.isLoggable(Level.FINE)) {
-					this.logger.log(Level.FINE,
-							"Disconnected from: " + host + ":" + port);
-				}
+				this.logger.debug("Disconnected");
 			} else if (command == Command.BIND) {
 				final ServerSocket serverSocket = this
 						.bindConnection(remoteInetAddress, port);
@@ -170,24 +158,8 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 							addressType, serverSocket.getInetAddress(),
 							hostname, serverSocket.getLocalPort());
 
-					if (this.logger.isLoggable(Level.FINE)) {
-						this.logger.log(Level.FINE, "Bound to "
-								+ serverSocket.getInetAddress()
-										.getHostAddress()
-								+ ":" + serverSocket.getLocalPort() + ":"
-								+ port + " for " + StringUtils
-										.formatSocket(this.getClientSocket()));
-					}
-
 					clientSocket = serverSocket.accept();
-					if (this.logger.isLoggable(Level.FINE)) {
-						this.logger.log(Level.FINE,
-								"Accepted "
-										+ StringUtils
-												.formatSocket(clientSocket)
-										+ " to " + StringUtils.formatSocket(
-												this.getClientSocket()));
-					}
+					this.logger.info("Accepted");
 				} finally {
 					serverSocket.close();
 				}
@@ -197,25 +169,19 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 						clientSocket.getPort());
 
 				this.tunnel(this.getClientSocket(), clientSocket);
-
-				if (this.logger.isLoggable(Level.FINE)) {
-					this.logger.log(Level.FINE,
-							"Disconnected from: " + host + ":" + port);
-				}
-
 			} else {
 				throw new IllegalCommandException(
 						"Unknown command: " + command);
 			}
 		} catch (final UnknownHostException e) {
-			this.logger.log(Level.INFO, "Failed to resolve host: " + host, e);
+			this.logger.warn("Failed to resolve host: {}", host, e);
 			try {
 				this.writeResponse(outputStream, Status.HOST_UNREACHABLE,
 						addressType, null, null, 0);
 			} catch (final IOException ioe) {
 			}
 		} catch (final RuntimeException e) {
-			this.logger.log(Level.WARNING, e.getMessage(), e);
+			this.logger.warn("Unknown error occurred", e);
 
 			try {
 				this.writeResponse(outputStream,
@@ -265,6 +231,8 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 				} catch (final IOException e) {
 				}
 			}
+
+			this.cleanup();
 		}
 	}
 
@@ -302,10 +270,7 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 			handshakeResponse[1] = (byte) 0xff;
 			outputStream.write(handshakeResponse);
 			outputStream.flush();
-			this.logger
-					.info("No supported authentication methods specified from "
-							+ StringUtils
-									.formatSocket(this.getClientSocket()));
+			this.logger.info("No supported authentication methods specified");
 			throw new EOFException();
 		}
 	}
@@ -345,13 +310,8 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 		}
 
 		if (status != Status.SUCCEEDED) {
-			this.logger.info("Client "
-					+ this.getClientSocket().getInetAddress().getHostAddress()
-					+ ":" + this.getClientSocket().getPort()
-					+ " failed to connected to "
-					+ InetAddress.getByAddress(safeAddress).getHostAddress()
-					+ ":" + port + ", result 0x"
-					+ Integer.toHexString(status.getValue()) + " " + status);
+			this.logger.info("Client failed to connect, result 0x{} {}",
+					Integer.toHexString(status.getValue()), status);
 		}
 
 		outputStream.write(SocksImplementation5.PROTOCOL_VERSION);

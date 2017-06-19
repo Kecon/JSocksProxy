@@ -22,8 +22,9 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Executor;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import nu.najt.kecon.jsocksproxy.AbstractSocksImplementation;
 import nu.najt.kecon.jsocksproxy.ConfigurationFacade;
@@ -32,9 +33,8 @@ import nu.najt.kecon.jsocksproxy.IllegalCommandException;
 /**
  * This is the SOCKS4 implementation. <br>
  * <br>
- * More about the SOCKS protocol <a
- * href="http://en.wikipedia.org/wiki/SOCKS">http
- * ://en.wikipedia.org/wiki/SOCKS</a>
+ * More about the <a href="http://en.wikipedia.org/wiki/SOCKS">SOCKS</a>
+ * protocol
  * 
  * @author Kenny Colliander Nordin
  * 
@@ -49,8 +49,8 @@ public class SocksImplementation4 extends AbstractSocksImplementation {
 
 	protected static final byte NULL = 0x00;
 
-	private static final Logger LOG = Logger
-			.getLogger("nu.najt.kecon.jsocksproxy.socks4");
+	private static final Logger LOG = LoggerFactory
+			.getLogger(SocksImplementation4.class.getPackage().getName());
 
 	/**
 	 * Constructor
@@ -64,8 +64,7 @@ public class SocksImplementation4 extends AbstractSocksImplementation {
 	 */
 	public SocksImplementation4(final ConfigurationFacade configurationFacade,
 			final Socket socket, final Executor executor) {
-		super(configurationFacade, socket, SocksImplementation4.LOG,
-				executor);
+		super(configurationFacade, socket, SocksImplementation4.LOG, executor);
 	}
 
 	@Override
@@ -75,10 +74,12 @@ public class SocksImplementation4 extends AbstractSocksImplementation {
 		String host = null;
 		int port = -1;
 		try {
-			inputStream = new DataInputStream(this.getClientSocket()
-					.getInputStream());
-			outputStream = new DataOutputStream(this.getClientSocket()
-					.getOutputStream());
+			this.setup();
+			
+			inputStream = new DataInputStream(
+					this.getClientSocket().getInputStream());
+			outputStream = new DataOutputStream(
+					this.getClientSocket().getOutputStream());
 
 			checkCommand(inputStream);
 
@@ -117,29 +118,12 @@ public class SocksImplementation4 extends AbstractSocksImplementation {
 
 			final Socket hostSocket;
 			try {
-				if (this.logger.isLoggable(Level.FINE)) {
-					this.logger.fine("Connecting to " + host + ":" + port
-							+ "...");
-				}
 				hostSocket = this.openConnection(inetAddress, port);
 
-				if (this.logger.isLoggable(Level.FINE)) {
-					this.logger.fine("Connected to " + host + ":" + port);
-				}
 			} catch (final IOException e) {
-				this.logger
-						.info("Client "
-								+ this.getClientSocket().getInetAddress()
-										.getHostAddress()
-								+ ":"
-								+ this.getClientSocket().getPort()
-								+ " failed to connected to "
-								+ host
-								+ ":"
-								+ port
-								+ ", result 0x"
-								+ Integer
-										.toHexString(SocksImplementation4.REQUEST_REJECTED));
+				this.logger.info("Failed to connected to {}:{}, result 0x{}",
+						host, port, Integer.toHexString(
+								SocksImplementation4.REQUEST_REJECTED));
 
 				final ByteBuffer response = ByteBuffer.allocate(8);
 
@@ -163,19 +147,11 @@ public class SocksImplementation4 extends AbstractSocksImplementation {
 			outputStream.write(response.array());
 			outputStream.flush();
 
-			this.logger.info("Established connection between "
-					+ this.getClientSocket().getInetAddress().getHostAddress()
-					+ ":" + this.getClientSocket().getPort() + " and "
-					+ hostSocket.getInetAddress().getHostAddress() + ":"
-					+ hostSocket.getPort());
-
 			this.tunnel(this.getClientSocket(), hostSocket);
 
 		} catch (final Exception e) {
-			this.logger.log(Level.WARNING, "Client "
-					+ this.getClientSocket().getInetAddress().getHostAddress()
-					+ ":" + this.getClientSocket().getPort()
-					+ " failed to setup connection to " + host + ":" + port, e);
+			this.logger.info("Failed to setup connection to {}:{}", host, port,
+					e);
 		} finally {
 			try {
 				inputStream.close();
@@ -186,6 +162,8 @@ public class SocksImplementation4 extends AbstractSocksImplementation {
 				outputStream.close();
 			} catch (final Exception e) {
 			}
+
+			this.cleanup();
 		}
 	}
 

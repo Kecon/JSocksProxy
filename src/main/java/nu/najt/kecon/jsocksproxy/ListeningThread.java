@@ -15,21 +15,25 @@
  */
 package nu.najt.kecon.jsocksproxy;
 
+import static nu.najt.kecon.jsocksproxy.utils.StringUtils.formatSocket;
+import static nu.najt.kecon.jsocksproxy.utils.StringUtils.formatSocketAddress;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.net.ServerSocketFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.MDC;
+
 import nu.najt.kecon.jsocksproxy.socks4.SocksImplementation4;
 import nu.najt.kecon.jsocksproxy.socks5.SocksImplementation5;
-import nu.najt.kecon.jsocksproxy.utils.StringUtils;
 
 /**
  * This thread handle incoming connections for a specific listening address
@@ -71,9 +75,11 @@ class ListeningThread implements Runnable {
 		this.logger = logger;
 		this.executorService = executorService;
 		this.inetSocketAddress = inetSocketAddress;
+		MDC.setContextMap(new HashMap<>());
+		MDC.put(LoggingConstants.SOCKS_SERVER,
+				formatSocketAddress(inetSocketAddress));
 
-		this.logger.info("Listening for incoming connections at "
-				+ StringUtils.formatSocketAddress(inetSocketAddress));
+		this.logger.info("Listening for incoming connections");
 
 		this.serverSocket = ServerSocketFactory.getDefault()
 				.createServerSocket(inetSocketAddress.getPort(),
@@ -98,31 +104,23 @@ class ListeningThread implements Runnable {
 							this.getImplementation(configuration, socket));
 
 				} catch (final ProtocolException e) {
-					this.logger
-							.log(Level.WARNING,
-									"Unknown SOCKS VERSION requested by "
-											+ StringUtils.formatSocket(socket),
-									e);
+					this.logger.info("Unknown SOCKS VERSION requested by {}",
+							formatSocket(socket), e);
 				} catch (final AccessDeniedException e) {
-					this.logger
-							.log(Level.WARNING,
-									"Access Denied for "
-											+ StringUtils.formatSocket(socket),
-									e);
+					this.logger.warn("Access Denied for {}",
+							formatSocket(socket), e);
 				}
 			}
 
 			this.serverSocket.close();
 		} catch (final Exception e) {
 			if (this.mayRun.get()) {
-				this.logger.log(Level.SEVERE,
-						"Unknown error occurred for " + StringUtils
-								.formatSocketAddress(this.inetSocketAddress),
-						e);
+				this.logger.error("Unknown error occurred for {}",
+						formatSocketAddress(this.inetSocketAddress), e);
 			}
 		} finally {
-			this.logger.info("Shutdown SOCKS proxy for "
-					+ StringUtils.formatSocketAddress(this.inetSocketAddress));
+			this.logger.info("Shutdown SOCKS proxy for {}",
+					formatSocketAddress(this.inetSocketAddress));
 		}
 	}
 

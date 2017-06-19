@@ -34,8 +34,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.naming.InitialContext;
 import javax.naming.Name;
@@ -44,9 +42,13 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+
 import nu.najt.kecon.jsocksproxy.configuration.Configuration;
 import nu.najt.kecon.jsocksproxy.configuration.Listen;
-import nu.najt.kecon.jsocksproxy.utils.StringUtils;
+import static nu.najt.kecon.jsocksproxy.utils.StringUtils.*;
 
 /**
  * This SOCKS proxy supports basic unauthenticated v4 and v5 versions.
@@ -65,7 +67,8 @@ public class JSocksProxy
 
 	public static final String CONFIGURATION_XML = "jsocksproxy.xml";
 
-	private final Logger logger = Logger.getLogger(this.getClass().getName());
+	private final Logger logger = LoggerFactory
+			.getLogger(this.getClass().getName());
 
 	private final List<InetSocketAddress> listeningAddresses = new ArrayList<InetSocketAddress>();
 
@@ -174,7 +177,9 @@ public class JSocksProxy
 
 	@Override
 	public void run() {
-		this.logger.info("Starting SOCKS Proxy " + JSocksProxy.VERSION);
+		MDC.setContextMap(Collections.emptyMap());
+
+		this.logger.info("Starting SOCKS Proxy {}", JSocksProxy.VERSION);
 
 		synchronized (this) {
 			if (this.canRun.getAndSet(Boolean.TRUE)) {
@@ -184,7 +189,7 @@ public class JSocksProxy
 			try {
 				this.rebind();
 			} catch (final NamingException e) {
-				this.logger.log(Level.INFO, "Failed to bind MBean", e);
+				this.logger.info("Failed to bind MBean", e);
 			}
 
 			while (this.canRun.get()) {
@@ -229,7 +234,7 @@ public class JSocksProxy
 			final InitialContext rootCtx = new InitialContext();
 			rootCtx.unbind(jndiName);
 		} catch (final NamingException e) {
-			this.logger.log(Level.INFO, "Failed to unbind MBean", e);
+			this.logger.info("Failed to unbind MBean", e);
 		}
 	}
 
@@ -267,11 +272,9 @@ public class JSocksProxy
 					executorService.execute(listeningThread);
 
 				} catch (final IOException e) {
-					this.logger.log(Level.SEVERE,
-							"Failed to setup listening address for "
-									+ StringUtils.formatSocketAddress(
-											inetSocketAddress),
-							e);
+					this.logger.error(
+							"Failed to setup listening address for {}",
+							formatSocketAddress(inetSocketAddress), e);
 				}
 			}
 		}
@@ -293,8 +296,8 @@ public class JSocksProxy
 		file = this.getConfigurationFile(basePath);
 
 		if (!file.isFile()) {
-			this.logger.warning("Failed to read configuration from "
-					+ file.getAbsolutePath());
+			this.logger.error("Failed to read configuration from {}",
+					file.getAbsolutePath());
 			return;
 		}
 
@@ -302,17 +305,15 @@ public class JSocksProxy
 			return;
 		}
 
-		if (this.logger.isLoggable(Level.FINE)) {
-			this.logger.log(Level.FINE, "Reading configuration");
-		}
+		this.logger.trace("Reading configuration");
 
 		this.readConfigurationFromFile(file);
 
 		this.configurationFileModified = file.lastModified();
 
 		if (this.configuration == null) {
-			this.logger.warning("No configuration read from "
-					+ JSocksProxy.CONFIGURATION_XML);
+			this.logger.error("No configuration read from {}",
+					JSocksProxy.CONFIGURATION_XML);
 			return;
 		}
 
@@ -325,14 +326,13 @@ public class JSocksProxy
 	private void updateBacklog() {
 		if ((this.configuration.getBacklog() <= 0)
 				|| (this.configuration.getBacklog() > 100)) {
-			this.logger
-					.config("Backlog value must be between 0 and 101; supplied value: "
-							+ this.configuration.getBacklog()
-							+ "; using default 100");
+			this.logger.warn(
+					"Backlog value must be between 0 and 101; supplied value: {} ; using default 100",
+					this.configuration.getBacklog());
 			this.backlog = 100;
 		} else {
 			this.backlog = this.configuration.getBacklog();
-			this.logger.config("Using backlog " + this.backlog);
+			this.logger.info("Using backlog {}", this.backlog);
 		}
 	}
 
@@ -345,14 +345,14 @@ public class JSocksProxy
 			try {
 				address = InetAddress.getByName(listen.getAddress());
 			} catch (final UnknownHostException e) {
-				this.logger.log(Level.WARNING,
-						"Failed to resolve " + listen.getAddress(), e);
+				this.logger.error("Failed to resolve {}", listen.getAddress(),
+						e);
 				continue;
 			}
 
 			port = listen.getPort();
 			if ((port <= 0) || (port >= 65536)) {
-				this.logger.warning("Invalid port number: " + port);
+				this.logger.error("Invalid port number: {}", port);
 				continue;
 			}
 
@@ -361,14 +361,12 @@ public class JSocksProxy
 						address, port);
 				this.listeningAddresses.add(inetSocketAddress);
 
-				this.logger.config("Added listening address "
-						+ StringUtils.formatSocketAddress(inetSocketAddress));
+				this.logger.info("Added listening address ",
+						formatSocketAddress(inetSocketAddress));
 
 			} catch (final IllegalArgumentException e) {
-				this.logger.log(
-						Level.WARNING, "Failed to create address "
-								+ listen.getAddress() + ":" + listen.getPort(),
-						e);
+				this.logger.error("Failed to create address {}:{}",
+						listen.getAddress(), listen.getPort(), e);
 				continue;
 			}
 		}
@@ -383,12 +381,10 @@ public class JSocksProxy
 			for (final String address : this.configuration
 					.getOutgoingAddresses()) {
 				try {
-
 					outgoingAddresses.addAll(
 							Arrays.asList(InetAddress.getAllByName(address)));
 				} catch (final UnknownHostException e) {
-					this.logger.log(Level.WARNING,
-							"Failed to resolve " + address, e);
+					this.logger.error("Failed to resolve {}", address, e);
 				}
 			}
 
@@ -405,21 +401,22 @@ public class JSocksProxy
 			}
 		}
 
-		final StringBuilder builder = new StringBuilder();
-		if (this.outgoingSourceAddresses != null) {
+		if (this.logger.isInfoEnabled()) {
+			final StringBuilder builder = new StringBuilder();
+			if (this.outgoingSourceAddresses != null) {
 
-			for (final InetAddress inetAddress : this.outgoingSourceAddresses) {
-				if (builder.length() > 0) {
-					builder.append(", ");
+				for (final InetAddress inetAddress : this.outgoingSourceAddresses) {
+					if (builder.length() > 0) {
+						builder.append(", ");
+					}
+
+					builder.append(inetAddress.getHostAddress());
 				}
 
-				builder.append(inetAddress.getHostAddress());
 			}
 
+			this.logger.info("Using outgoing source addresses: " + builder);
 		}
-
-		this.logger.config("Using outgoing source addresses: " + builder);
-		this.logger.info("Using outgoing source addresses: " + builder);
 	}
 
 	private void readConfigurationFromFile(final File file) {
@@ -431,7 +428,7 @@ public class JSocksProxy
 			this.configuration = (Configuration) unmarshaller.unmarshal(file);
 
 		} catch (final JAXBException e) {
-			this.logger.log(Level.WARNING, "Failed to read configuration", e);
+			this.logger.error("Failed to read configuration", e);
 		}
 	}
 
