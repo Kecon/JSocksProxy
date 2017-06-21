@@ -29,27 +29,27 @@ import org.junit.Test;
 public class CommandTest {
 
 	@Test
-	public void testValueOf_connect() throws IllegalCommandException {
+	public void testValueOfConnect() throws IllegalCommandException {
 		assertEquals(Command.CONNECT, Command.valueOf((byte) 0x01));
 	}
 
 	@Test
-	public void testValueOf_bind() throws IllegalCommandException {
+	public void testValueOfBind() throws IllegalCommandException {
 		assertEquals(Command.BIND, Command.valueOf((byte) 0x02));
 	}
 
 	@Test(expected = IllegalCommandException.class)
-	public void testValueOf_unknown() throws IllegalCommandException {
+	public void testValueOfUnknown() throws IllegalCommandException {
 		Command.valueOf((byte) 0x00);
 	}
 
 	@Test
-	public void testGetValue_connect() {
+	public void testGetValueConnect() {
 		assertEquals(0x01, Command.CONNECT.getValue());
 	}
 
 	@Test
-	public void testGetValue_bind() {
+	public void testGetValueBind() {
 		assertEquals(0x02, Command.BIND.getValue());
 	}
 }

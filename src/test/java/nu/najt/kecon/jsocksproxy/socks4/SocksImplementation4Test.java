@@ -1,3 +1,18 @@
+/**
+ * JSocksProxy Copyright (c) 2006-2017 Kenny Colliander Nordin
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package nu.najt.kecon.jsocksproxy.socks4;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -25,6 +40,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import nu.najt.kecon.jsocksproxy.ConfigurationFacade;
 
+/**
+ * Testing of <code>SocksImplementation4</code>
+ * 
+ * @author Kenny Colliander Nordin
+ * @since 2017-06-21
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class SocksImplementation4Test {
 
@@ -95,7 +116,7 @@ public class SocksImplementation4Test {
 	}
 
 	@Test
-	public void testRun_connectOk() throws Exception {
+	public void testRunConnectOk() throws Exception {
 		// Version (0x04) has already been parsed
 		byte[] request = { 0x01, 0x00, 0x50, 0x42, 0x66, 0x07, 0x63, 0x46,
 				0x72, 0x65, 0x64, 0x00, 'T', 'e', 's', 't' };
@@ -131,7 +152,7 @@ public class SocksImplementation4Test {
 	}
 
 	@Test
-	public void testRun_connectOk4A() throws Exception {
+	public void testRunConnectOk4a() throws Exception {
 
 		socksImplementation4 = new SocksImplementation4(configurationFacade,
 				socket, executor) {
@@ -189,7 +210,7 @@ public class SocksImplementation4Test {
 	}
 
 	@Test
-	public void testRun_connectUnknownCommand() throws Exception {
+	public void testRunConnectUnknownCommand() throws Exception {
 		// Version (0x04) has already been parsed
 		byte[] request = { 0x05, 0x00, 0x50, 0x42, 0x66, 0x07, 0x63, 0x46,
 				0x72, 0x65, 0x64, 0x00, 'T', 'e', 's', 't' };
@@ -207,7 +228,7 @@ public class SocksImplementation4Test {
 	}
 
 	@Test
-	public void testRun_connectTimeout() throws Exception {
+	public void testRunConnectTimeout() throws Exception {
 
 		socksImplementation4 = new SocksImplementation4(configurationFacade,
 				socket, executor) {
@@ -236,7 +257,7 @@ public class SocksImplementation4Test {
 	}
 
 	@Test
-	public void testRun_bindOk() throws Exception {
+	public void testRunBindOk() throws Exception {
 		// Version (0x04) has already been parsed
 		byte[] request = { 0x02, 0x00, 0x50, 0x42, 0x66, 0x07, 0x63, 0x46,
 				0x72, 0x65, 0x64, 0x00, 'T', 'e', 's', 't' };
@@ -278,7 +299,7 @@ public class SocksImplementation4Test {
 	}
 
 	@Test
-	public void testRun_bindWrongRemote() throws Exception {
+	public void testRunBindWrongRemote() throws Exception {
 		// Version (0x04) has already been parsed
 		byte[] request = { 0x02, 0x00, 0x50, 0x42, 0x66, 0x07, 0x63, 0x46,
 				0x72, 0x65, 0x64, 0x00 };
