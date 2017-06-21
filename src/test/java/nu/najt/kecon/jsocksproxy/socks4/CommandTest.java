@@ -17,30 +17,39 @@ package nu.najt.kecon.jsocksproxy.socks4;
 
 import nu.najt.kecon.jsocksproxy.IllegalCommandException;
 
-import org.junit.Assert;
+import static org.junit.Assert.*;
 import org.junit.Test;
 
+/**
+ * Testing of <code>Command</code>
+ * 
+ * @author Kenny Colliander Nordin
+ * @since 2017-06-20
+ */
 public class CommandTest {
 
 	@Test
-	public void testValueOf() {
-
-		try {
-			Assert.assertEquals(Command.CONNECT, Command.valueOf((byte) 0x01));
-			Assert.assertEquals(Command.BIND, Command.valueOf((byte) 0x02));
-		} catch (final IllegalCommandException e) {
-			Assert.fail();
-		}
-
-		try {
-			Command.valueOf((byte) 0x00);
-			Assert.fail();
-		} catch (final IllegalCommandException e) {
-		}
+	public void testValueOfConnect() throws IllegalCommandException {
+		assertEquals(Command.CONNECT, Command.valueOf((byte) 0x01));
 	}
 
-	public void testGetValue() {
-		Assert.assertEquals(0x01, Command.CONNECT.getValue());
-		Assert.assertEquals(0x02, Command.BIND.getValue());
+	@Test
+	public void testValueOfBind() throws IllegalCommandException {
+		assertEquals(Command.BIND, Command.valueOf((byte) 0x02));
+	}
+
+	@Test(expected = IllegalCommandException.class)
+	public void testValueOfUnknown() throws IllegalCommandException {
+		Command.valueOf((byte) 0x00);
+	}
+
+	@Test
+	public void testGetValueConnect() {
+		assertEquals(0x01, Command.CONNECT.getValue());
+	}
+
+	@Test
+	public void testGetValueBind() {
+		assertEquals(0x02, Command.BIND.getValue());
 	}
 }

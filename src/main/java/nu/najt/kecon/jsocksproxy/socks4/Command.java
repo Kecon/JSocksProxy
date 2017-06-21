@@ -32,7 +32,7 @@ public enum Command {
 
 	/** Bind */
 	BIND((byte) 0x02);
-	
+
 	private static final Map<Byte, Command> map;
 
 	static {
@@ -40,10 +40,10 @@ public enum Command {
 		for (final Command command : Command.values()) {
 			commands.put(command.getValue(), command);
 		}
-		
+
 		map = Collections.unmodifiableMap(commands);
 	}
-	
+
 	private final byte value;
 
 	private Command(final byte value) {
@@ -54,12 +54,13 @@ public enum Command {
 		return this.value;
 	}
 
-	public static Command valueOf(final Byte b) throws IllegalCommandException {
+	public static Command valueOf(final byte b)
+			throws IllegalCommandException {
 		final Command command = Command.map.get(b);
 
 		if (command == null) {
-			throw new IllegalCommandException("Unknown command command: 0x"
-					+ Integer.toHexString(b));
+			throw new IllegalCommandException(
+					"Unknown command command: 0x" + Integer.toHexString(b));
 		}
 
 		return command;
