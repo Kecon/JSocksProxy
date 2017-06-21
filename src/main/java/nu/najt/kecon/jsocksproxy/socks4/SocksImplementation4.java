@@ -16,10 +16,12 @@
 package nu.najt.kecon.jsocksproxy.socks4;
 
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Executor;
 
@@ -70,88 +72,36 @@ public class SocksImplementation4 extends AbstractSocksImplementation {
 	@Override
 	public void run() {
 		DataInputStream inputStream = null;
-		DataOutputStream outputStream = null;
-		String host = null;
+		OutputStream outputStream = null;
+		InetAddress inetAddress = null;
 		int port = -1;
 		try {
 			this.setup();
-			
-			inputStream = new DataInputStream(
-					this.getClientSocket().getInputStream());
-			outputStream = new DataOutputStream(
-					this.getClientSocket().getOutputStream());
 
-			checkCommand(inputStream);
+			inputStream = this.getInputStream();
+			outputStream = this.getOutputStream();
 
-			port = inputStream.readShort() & 0xFFFF;
+			final Command command = Command.valueOf(inputStream.readByte());
+			port = this.getPort(inputStream);
+			inetAddress = this.getAddress(inputStream);
 
-			final byte[] rawIp = new byte[4];
-
-			inputStream.readFully(rawIp);
-
-			InetAddress inetAddress = InetAddress.getByAddress(rawIp);
-
-			final byte[] buf = new byte[1];
-
-			int length;
-			while ((length = inputStream.read(buf)) >= 0) {
-				if ((length > 0) && (buf[0] == 0)) {
-					break;
-				}
+			if (command == Command.CONNECT) {
+				this.handleConnect(outputStream, inetAddress, port);
+			} else {
+				this.handleBind(outputStream, inetAddress, port);
 			}
+		} catch (IllegalCommandException e) {
+			this.logger.info("Illegal command", e);
 
-			// SOCKS4a extension
-			if ((rawIp[0] == 0) && (rawIp[1] == 0) && (rawIp[2] == 0)
-					&& (rawIp[3] != 0)) {
-				final StringBuilder builder = new StringBuilder();
-				while ((length = inputStream.read(buf)) >= 0) {
-					if ((length > 0) && (buf[0] == 0)) {
-						break;
-					}
-					builder.append(buf);
-				}
-				host = builder.toString();
-				inetAddress = InetAddress.getByName(host);
-			}
-
-			host = inetAddress.getHostAddress();
-
-			final Socket hostSocket;
 			try {
-				hostSocket = this.openConnection(inetAddress, port);
-
-			} catch (final IOException e) {
-				this.logger.info("Failed to connected to {}:{}, result 0x{}",
-						host, port, Integer.toHexString(
-								SocksImplementation4.REQUEST_REJECTED));
-
-				final ByteBuffer response = ByteBuffer.allocate(8);
-
-				response.put(SocksImplementation4.NULL);
-				response.put(SocksImplementation4.REQUEST_REJECTED);
-				response.putShort((short) port);
-				response.put(rawIp);
-
-				outputStream.write(response.array());
-				outputStream.flush();
-				return;
+				writeResponse(outputStream,
+						SocksImplementation4.REQUEST_REJECTED, port,
+						inetAddress);
+			} catch (IOException e1) {
 			}
-
-			final ByteBuffer response = ByteBuffer.allocate(8);
-
-			response.put(SocksImplementation4.NULL);
-			response.put(SocksImplementation4.REQUEST_GRANTED);
-			response.putShort((short) port);
-			response.put(hostSocket.getInetAddress().getAddress());
-
-			outputStream.write(response.array());
-			outputStream.flush();
-
-			this.tunnel(this.getClientSocket(), hostSocket);
-
-		} catch (final Exception e) {
-			this.logger.info("Failed to setup connection to {}:{}", host, port,
-					e);
+		} catch (final RuntimeException | IOException e) {
+			this.logger.info("Failed to setup connection to {}:{}",
+					inetAddress, port, e);
 		} finally {
 			try {
 				inputStream.close();
@@ -167,12 +117,119 @@ public class SocksImplementation4 extends AbstractSocksImplementation {
 		}
 	}
 
-	private void checkCommand(DataInputStream inputStream)
-			throws IllegalCommandException, IOException {
-		final Command command = Command.valueOf(inputStream.readByte());
+	protected void handleConnect(OutputStream outputStream,
+			InetAddress inetAddress, int port) throws IOException {
+		final Socket hostSocket;
+		try {
+			hostSocket = this.openConnection(inetAddress, port);
+		} catch (final IOException e) {
+			this.logger.info("Failed to connected to {}:{}, result 0x{}",
+					inetAddress.getHostAddress(), port, Integer.toHexString(
+							SocksImplementation4.REQUEST_REJECTED));
 
-		if (command != Command.CONNECT) {
-			throw new IllegalCommandException("Unknown command: " + command);
+			writeResponse(outputStream, SocksImplementation4.REQUEST_REJECTED,
+					port, inetAddress);
+			return;
 		}
+
+		writeResponse(outputStream, SocksImplementation4.REQUEST_GRANTED, port,
+				hostSocket.getInetAddress());
+
+		this.tunnel(this.getClientSocket(), hostSocket);
+	}
+
+	protected void handleBind(OutputStream outputStream,
+			InetAddress inetAddress, int port) throws IOException {
+
+		try (final ServerSocket serverSocket = this.bindConnection(inetAddress,
+				port)) {
+
+			writeResponse(outputStream, SocksImplementation4.REQUEST_GRANTED,
+					serverSocket.getLocalPort(),
+					serverSocket.getInetAddress());
+
+			try (Socket remoteSocket = serverSocket.accept()) {
+				if (remoteSocket.getInetAddress().equals(inetAddress)) {
+					writeResponse(outputStream,
+							SocksImplementation4.REQUEST_GRANTED,
+							remoteSocket.getPort(),
+							remoteSocket.getInetAddress());
+					this.tunnel(this.getClientSocket(), remoteSocket);
+				} else {
+					writeResponse(outputStream,
+							SocksImplementation4.REQUEST_REJECTED,
+							remoteSocket.getPort(),
+							remoteSocket.getInetAddress());
+				}
+			}
+		} catch (IOException e) {
+			writeResponse(outputStream, SocksImplementation4.REQUEST_REJECTED,
+					port, null);
+		}
+	}
+
+	protected OutputStream getOutputStream() throws IOException {
+		return this.getClientSocket().getOutputStream();
+	}
+
+	protected DataInputStream getInputStream() throws IOException {
+		return new DataInputStream(this.getClientSocket().getInputStream());
+	}
+
+	protected InetAddress getAddress(final DataInputStream inputStream)
+			throws IOException, UnknownHostException {
+		final byte[] rawIp = new byte[4];
+		inputStream.readFully(rawIp);
+
+		final byte[] buf = new byte[1];
+
+		int length;
+		while ((length = inputStream.read(buf)) >= 0) {
+			if ((length > 0) && (buf[0] == 0)) {
+				break;
+			}
+		}
+
+		// SOCKS4a extension
+		if ((rawIp[0] == 0) && (rawIp[1] == 0) && (rawIp[2] == 0)
+				&& (rawIp[3] != 0)) {
+			final StringBuilder builder = new StringBuilder();
+			while ((length = inputStream.read(buf)) >= 0) {
+				if ((length > 0) && (buf[0] == 0)) {
+					break;
+				}
+				builder.append((char) buf[0]);
+			}
+			return resolveHostname(builder);
+		} else {
+			return InetAddress.getByAddress(rawIp);
+		}
+	}
+
+	protected InetAddress resolveHostname(final StringBuilder builder)
+			throws UnknownHostException {
+		return InetAddress.getByName(builder.toString());
+	}
+
+	protected int getPort(final DataInputStream inputStream)
+			throws IOException {
+		return inputStream.readShort() & 0xFFFF;
+	}
+
+	protected void writeResponse(final OutputStream outputStream,
+			final byte status, final int port, final InetAddress inetAddress)
+			throws IOException {
+		final ByteBuffer response = ByteBuffer.allocate(8);
+
+		response.put(SocksImplementation4.NULL);
+		response.put(status);
+		response.putShort((short) port);
+
+		if (inetAddress != null) {
+			response.put(inetAddress.getAddress());
+		}
+
+		outputStream.write(response.array());
+		outputStream.flush();
 	}
 }
