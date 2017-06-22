@@ -25,23 +25,25 @@ import org.junit.Test;
 
 public class StringUtilsTest extends StringUtils {
 
+	private static final String IP_10_123_1_54_80 = "10.123.1.54:80";
+
 	@Test
 	public void testFormatSocketAddress() throws Exception {
 
-		final InetAddress inetAddress = InetAddress.getByAddress(new byte[] {
-				10, 123, 1, 54 });
+		final InetAddress inetAddress = InetAddress
+				.getByAddress(new byte[] { 10, 123, 1, 54 });
 		final InetSocketAddress inetSocketAddress = new InetSocketAddress(
 				inetAddress, 80);
 
-		Assert.assertEquals("10.123.1.54:80",
+		Assert.assertEquals(IP_10_123_1_54_80,
 				StringUtils.formatSocketAddress(inetSocketAddress));
 	}
 
 	@Test
 	public void testFormatSocketSocket() throws Exception {
 
-		final InetAddress inetAddress = InetAddress.getByAddress(new byte[] {
-				10, 123, 1, 54 });
+		final InetAddress inetAddress = InetAddress
+				.getByAddress(new byte[] { 10, 123, 1, 54 });
 
 		final Socket socket = new Socket() {
 
@@ -57,13 +59,14 @@ public class StringUtilsTest extends StringUtils {
 
 		};
 
-		Assert.assertEquals("10.123.1.54:80", StringUtils.formatSocket(socket));
+		Assert.assertEquals(IP_10_123_1_54_80,
+				StringUtils.formatSocket(socket));
 	}
 
 	@Test
 	public void testFormatSocketServerSocket() throws Exception {
-		final InetAddress inetAddress = InetAddress.getByAddress(new byte[] {
-				10, 123, 1, 54 });
+		final InetAddress inetAddress = InetAddress
+				.getByAddress(new byte[] { 10, 123, 1, 54 });
 
 		final ServerSocket socket = new ServerSocket() {
 
@@ -79,6 +82,7 @@ public class StringUtilsTest extends StringUtils {
 
 		};
 
-		Assert.assertEquals("10.123.1.54:80", StringUtils.formatSocket(socket));
+		Assert.assertEquals(IP_10_123_1_54_80,
+				StringUtils.formatSocket(socket));
 	}
 }

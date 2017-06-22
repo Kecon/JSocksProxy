@@ -27,6 +27,10 @@ import java.net.Socket;
  * @author Kenny Colliander Nordin
  */
 public class StringUtils {
+	private static final char COLON = ':';
+	private static final char END_BRACKET = ']';
+	private static final char START_BRACKET = '[';
+
 	/**
 	 * Create a string representation of a {@link InetSocketAddress}
 	 * 
@@ -48,14 +52,14 @@ public class StringUtils {
 		final InetAddress inetAddress = inetSocketAddress.getAddress();
 
 		if (inetAddress instanceof Inet6Address) {
-			builder.append("[");
+			builder.append(START_BRACKET);
 			builder.append(inetAddress.getHostAddress());
-			builder.append("]");
+			builder.append(END_BRACKET);
 		} else {
 			builder.append(inetAddress.getHostAddress());
 		}
 
-		builder.append(":");
+		builder.append(COLON);
 		builder.append(inetSocketAddress.getPort());
 
 		return builder.toString();
@@ -81,13 +85,13 @@ public class StringUtils {
 		final InetAddress inetAddress = socket.getInetAddress();
 
 		if (inetAddress instanceof Inet6Address) {
-			builder.append("[");
+			builder.append(START_BRACKET);
 			builder.append(inetAddress.getHostAddress());
-			builder.append("]");
+			builder.append(END_BRACKET);
 		} else {
 			builder.append(inetAddress.getHostAddress());
 		}
-		builder.append(":");
+		builder.append(COLON);
 		builder.append(socket.getPort());
 
 		return builder.toString();
@@ -113,13 +117,13 @@ public class StringUtils {
 		final InetAddress inetAddress = socket.getLocalAddress();
 
 		if (inetAddress instanceof Inet6Address) {
-			builder.append("[");
+			builder.append(START_BRACKET);
 			builder.append(inetAddress.getHostAddress());
-			builder.append("]");
+			builder.append(END_BRACKET);
 		} else {
 			builder.append(inetAddress.getHostAddress());
 		}
-		builder.append(":");
+		builder.append(COLON);
 		builder.append(socket.getLocalPort());
 
 		return builder.toString();
@@ -145,13 +149,13 @@ public class StringUtils {
 		final InetAddress inetAddress = socket.getInetAddress();
 
 		if (inetAddress instanceof Inet6Address) {
-			builder.append("[");
+			builder.append(START_BRACKET);
 			builder.append(inetAddress.getHostAddress());
-			builder.append("]");
+			builder.append(END_BRACKET);
 		} else {
 			builder.append(inetAddress.getHostAddress());
 		}
-		builder.append(":");
+		builder.append(COLON);
 		builder.append(socket.getLocalPort());
 
 		return builder.toString();
