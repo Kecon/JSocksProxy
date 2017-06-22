@@ -94,8 +94,13 @@ class ListeningThread implements Runnable {
 			Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 
 			Socket socket;
-			while (this.mayRun.get()
-					&& ((socket = this.serverSocket.accept()) != null)) {
+			while (this.mayRun.get()) {
+				socket = this.serverSocket.accept();
+
+				if (socket == null) {
+					continue;
+				}
+				
 				socket.setTcpNoDelay(true);
 				socket.setKeepAlive(true);
 

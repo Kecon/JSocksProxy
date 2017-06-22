@@ -49,6 +49,18 @@ import nu.najt.kecon.jsocksproxy.ConfigurationFacade;
 @RunWith(MockitoJUnitRunner.class)
 public class SocksImplementation4Test {
 
+	private static final String REPLY = "Reply";
+
+	private static final String TEST = "Test";
+
+	private static final String EXTERNAL_IP2_66_102_7_100 = "66.102.7.100";
+
+	private static final String EXTERNAL_IP_66_102_7_99 = "66.102.7.99";
+
+	private static final String SERVER_IP_5_6_7_8 = "5.6.7.8";
+
+	private static final String CLIENT_IP_1_2_3_4 = "1.2.3.4";
+
 	private SocksImplementation4 socksImplementation4;
 
 	@Mock
@@ -102,12 +114,12 @@ public class SocksImplementation4Test {
 		};
 
 		when(socket.getInetAddress()).thenReturn(clientAddress);
-		when(clientAddress.getHostAddress()).thenReturn("1.2.3.4");
+		when(clientAddress.getHostAddress()).thenReturn(CLIENT_IP_1_2_3_4);
 
 		when(socket.getLocalAddress()).thenReturn(serverAddress);
-		when(serverAddress.getHostAddress()).thenReturn("5.6.7.8");
-		when(serverAddress.getAddress())
-				.thenReturn(InetAddress.getByName("5.6.7.8").getAddress());
+		when(serverAddress.getHostAddress()).thenReturn(SERVER_IP_5_6_7_8);
+		when(serverAddress.getAddress()).thenReturn(
+				InetAddress.getByName(SERVER_IP_5_6_7_8).getAddress());
 	}
 
 	@After
@@ -128,7 +140,7 @@ public class SocksImplementation4Test {
 				.thenReturn(new ByteArrayInputStream(request));
 		when(socket.getOutputStream()).thenReturn(clientOutputStream);
 
-		expectedInetAddress = InetAddress.getByName("66.102.7.99");
+		expectedInetAddress = InetAddress.getByName(EXTERNAL_IP_66_102_7_99);
 		expectedPort = 80;
 
 		when(remoteServerSocket.getInetAddress())
@@ -136,7 +148,7 @@ public class SocksImplementation4Test {
 
 		when(remoteServerSocket.getInputStream())
 				.thenReturn(new ByteArrayInputStream(
-						"Reply".getBytes(StandardCharsets.US_ASCII)));
+						REPLY.getBytes(StandardCharsets.US_ASCII)));
 
 		ByteArrayOutputStream remoteServerOutputStream = new ByteArrayOutputStream();
 
@@ -147,7 +159,7 @@ public class SocksImplementation4Test {
 
 		assertArrayEquals(expectedResponse, clientOutputStream.toByteArray());
 
-		assertArrayEquals("Test".getBytes(StandardCharsets.US_ASCII),
+		assertArrayEquals(TEST.getBytes(StandardCharsets.US_ASCII),
 				remoteServerOutputStream.toByteArray());
 	}
 
@@ -186,7 +198,7 @@ public class SocksImplementation4Test {
 				.thenReturn(new ByteArrayInputStream(request));
 		when(socket.getOutputStream()).thenReturn(clientOutputStream);
 
-		expectedInetAddress = InetAddress.getByName("66.102.7.99");
+		expectedInetAddress = InetAddress.getByName(EXTERNAL_IP_66_102_7_99);
 		expectedPort = 80;
 
 		when(remoteServerSocket.getInetAddress())
@@ -194,7 +206,7 @@ public class SocksImplementation4Test {
 
 		when(remoteServerSocket.getInputStream())
 				.thenReturn(new ByteArrayInputStream(
-						"Reply".getBytes(StandardCharsets.US_ASCII)));
+						REPLY.getBytes(StandardCharsets.US_ASCII)));
 
 		ByteArrayOutputStream remoteServerOutputStream = new ByteArrayOutputStream();
 
@@ -205,7 +217,7 @@ public class SocksImplementation4Test {
 
 		assertArrayEquals(expectedResponse, clientOutputStream.toByteArray());
 
-		assertArrayEquals("Test".getBytes(StandardCharsets.US_ASCII),
+		assertArrayEquals(TEST.getBytes(StandardCharsets.US_ASCII),
 				remoteServerOutputStream.toByteArray());
 	}
 
@@ -270,7 +282,7 @@ public class SocksImplementation4Test {
 				.thenReturn(new ByteArrayInputStream(request));
 		when(socket.getOutputStream()).thenReturn(clientOutputStream);
 
-		expectedInetAddress = InetAddress.getByName("66.102.7.99");
+		expectedInetAddress = InetAddress.getByName(EXTERNAL_IP_66_102_7_99);
 		expectedPort = 80;
 
 		when(serverSocket.getLocalPort()).thenReturn(1337);
@@ -284,7 +296,7 @@ public class SocksImplementation4Test {
 
 		when(remoteServerSocket.getInputStream())
 				.thenReturn(new ByteArrayInputStream(
-						"Reply".getBytes(StandardCharsets.US_ASCII)));
+						REPLY.getBytes(StandardCharsets.US_ASCII)));
 
 		ByteArrayOutputStream remoteServerOutputStream = new ByteArrayOutputStream();
 
@@ -294,7 +306,7 @@ public class SocksImplementation4Test {
 		socksImplementation4.run();
 
 		assertArrayEquals(expectedResponse, clientOutputStream.toByteArray());
-		assertArrayEquals("Test".getBytes(StandardCharsets.US_ASCII),
+		assertArrayEquals(TEST.getBytes(StandardCharsets.US_ASCII),
 				remoteServerOutputStream.toByteArray());
 	}
 
@@ -311,7 +323,7 @@ public class SocksImplementation4Test {
 				.thenReturn(new ByteArrayInputStream(request));
 		when(socket.getOutputStream()).thenReturn(clientOutputStream);
 
-		expectedInetAddress = InetAddress.getByName("66.102.7.99");
+		expectedInetAddress = InetAddress.getByName(EXTERNAL_IP_66_102_7_99);
 		expectedPort = 80;
 
 		when(serverSocket.getLocalPort()).thenReturn(1337);
@@ -319,7 +331,7 @@ public class SocksImplementation4Test {
 		when(serverSocket.accept()).thenReturn(remoteServerSocket);
 
 		when(remoteServerSocket.getInetAddress())
-				.thenReturn(InetAddress.getByName("66.102.7.100"));
+				.thenReturn(InetAddress.getByName(EXTERNAL_IP2_66_102_7_100));
 		when(remoteServerSocket.getPort()).thenReturn(80);
 
 		ByteArrayOutputStream remoteServerOutputStream = new ByteArrayOutputStream();

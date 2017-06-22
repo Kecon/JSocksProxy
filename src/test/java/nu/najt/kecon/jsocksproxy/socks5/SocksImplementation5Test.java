@@ -35,10 +35,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import nu.najt.kecon.jsocksproxy.ConfigurationFacade;
-
 import org.junit.Assert;
 import org.junit.Test;
+
+import nu.najt.kecon.jsocksproxy.ConfigurationFacade;
 
 public class SocksImplementation5Test {
 
@@ -48,19 +48,20 @@ public class SocksImplementation5Test {
 		final CountDownLatch countDownLatch = new CountDownLatch(2);
 		final AtomicInteger count = new AtomicInteger(0);
 		final Executor executor = Executors.newCachedThreadPool();
-		final InetAddress serverAddress = InetAddress.getByAddress(new byte[] {
-				11, 12, 13, 14 });
+		final InetAddress serverAddress = InetAddress
+				.getByAddress(new byte[] { 11, 12, 13, 14 });
 		final InetAddress listeningAddress = InetAddress
 				.getByAddress(new byte[] { 22, 33, 44, 55 });
-		final InetAddress clientAddress = InetAddress.getByAddress(new byte[] {
-				55, 66, 77, 88 });
+		final InetAddress clientAddress = InetAddress
+				.getByAddress(new byte[] { 55, 66, 77, 88 });
 		final int serverPort = 80;
 		final ByteArrayOutputStream request = new ByteArrayOutputStream();
 
 		/* starting 0x05 is stripped before this */
 		final byte[] request1 = new byte[] { 1, 0 };
 		final byte[] response1 = new byte[] { 0x05, 0x00 };
-		final byte[] request2 = new byte[] { 5, 1, 0, 1, 11, 12, 13, 14, 0, 80 };
+		final byte[] request2 = new byte[] { 5, 1, 0, 1, 11, 12, 13, 14, 0,
+				80 };
 		final byte[] response2 = new byte[] { 0x05, 0x00, 0x00, 0x01, 0, 0, 0,
 				0, -1, -1 };
 
@@ -199,7 +200,8 @@ public class SocksImplementation5Test {
 			}
 
 			@Override
-			protected void tunnel(final Socket internal, final Socket external) {
+			protected void tunnel(final Socket internal,
+					final Socket external) {
 				Assert.assertEquals(clientSocket, internal);
 				Assert.assertEquals(serverSocket, external);
 
@@ -221,8 +223,9 @@ public class SocksImplementation5Test {
 		final DataOutputStream dataOutputStream = new DataOutputStream(
 				byteArrayOutputStream);
 
-		implementation5.authenticate(new DataInputStream(
-				new ByteArrayInputStream(new byte[] { 1, 0 })),
+		implementation5.authenticate(
+				new DataInputStream(
+						new ByteArrayInputStream(new byte[] { 1, 0 })),
 				dataOutputStream);
 
 		Assert.assertArrayEquals(new byte[] { 5, 0 },
@@ -237,8 +240,8 @@ public class SocksImplementation5Test {
 		final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 		final DataOutputStream dataOutputStream = new DataOutputStream(
 				byteArrayOutputStream);
-		final InetAddress boundAddress = InetAddress.getByAddress(new byte[] {
-				10, 11, 12, 13 });
+		final InetAddress boundAddress = InetAddress
+				.getByAddress(new byte[] { 10, 11, 12, 13 });
 
 		implementation5.writeResponse(dataOutputStream, Status.SUCCEEDED,
 				AddressType.IP_V4, boundAddress, null, 80);
@@ -263,8 +266,9 @@ public class SocksImplementation5Test {
 		implementation5.writeResponse(dataOutputStream, Status.SUCCEEDED,
 				AddressType.IP_V6, boundAddress, null, 80);
 
-		Assert.assertArrayEquals(new byte[] { 5, 0, 0, 4, 10, 11, 12, 13, 10,
-				11, 12, 13, 10, 11, 12, 13, 10, 11, 12, 13, 0, 80 },
+		Assert.assertArrayEquals(
+				new byte[] { 5, 0, 0, 4, 10, 11, 12, 13, 10, 11, 12, 13, 10,
+						11, 12, 13, 10, 11, 12, 13, 0, 80 },
 				byteArrayOutputStream.toByteArray());
 	}
 
@@ -284,8 +288,9 @@ public class SocksImplementation5Test {
 				AddressType.DOMAIN, boundAddress, "test".getBytes("US-ASCII"),
 				80);
 
-		Assert.assertArrayEquals(new byte[] { 5, 0, 0, 3, 4, 't', 'e', 's',
-				't', 0, 80 }, byteArrayOutputStream.toByteArray());
+		Assert.assertArrayEquals(
+				new byte[] { 5, 0, 0, 3, 4, 't', 'e', 's', 't', 0, 80 },
+				byteArrayOutputStream.toByteArray());
 	}
 
 }
