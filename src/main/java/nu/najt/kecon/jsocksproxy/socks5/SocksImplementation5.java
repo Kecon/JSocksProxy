@@ -20,7 +20,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -79,7 +78,7 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 
 		try {
 			this.setup();
-			
+
 			// Handshake
 			inputStream = new DataInputStream(this.getClientInputStream());
 			outputStream = new DataOutputStream(
@@ -278,17 +277,20 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 	/**
 	 * Write response back to client
 	 * 
-	 * @param originalOutputStream
-	 *            the {@link OutputStream}
+	 * @param outputStream
+	 *            the output stream
 	 * @param status
-	 *            the status <br>
+	 *            the status
 	 * @param addressType
-	 *            the addressType<br>
-	 * @param address
-	 *            the address
+	 *            the address type
+	 * @param boundAddress
+	 *            the bound address
+	 * @param hostname
+	 *            the hostname
 	 * @param port
 	 *            the port
 	 * @throws IOException
+	 *             if an I/O exception occurs
 	 */
 	protected void writeResponse(final DataOutputStream outputStream,
 			final Status status, final AddressType addressType,

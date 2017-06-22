@@ -21,7 +21,6 @@ import javax.naming.NamingException;
  * MBean interface for application servers.
  * 
  * @author Kenny Colliander Nordin
- * 
  */
 public interface JSocksProxyMBean {
 
@@ -36,6 +35,7 @@ public interface JSocksProxyMBean {
 	 * @param jndiName
 	 *            the jndiName
 	 * @throws NamingException
+	 *             if fail to register jndi name
 	 */
 	public void setJndiName(String jndiName) throws NamingException;
 
@@ -49,6 +49,7 @@ public interface JSocksProxyMBean {
 			String configurationBasePathPropertyKey);
 
 	/**
+	 * Get property key for the configuration base path
 	 * 
 	 * @return the configuration base path property key
 	 */
@@ -56,15 +57,11 @@ public interface JSocksProxyMBean {
 
 	/**
 	 * Start the service
-	 * 
-	 * @throws Exception
 	 */
 	public void start();
 
 	/**
 	 * Stop the service
-	 * 
-	 * @throws Exception
 	 */
 	public void stop();
 

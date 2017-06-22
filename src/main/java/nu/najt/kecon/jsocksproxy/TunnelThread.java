@@ -39,12 +39,12 @@ public final class TunnelThread implements Runnable {
 	/**
 	 * Constructor
 	 * 
+	 * @param countDownLatch
+	 *            the count down latch that will count down when copy completes
 	 * @param inputSocket
-	 *            the input clientSocket
+	 *            the input socket
 	 * @param outputSocket
-	 *            the output clientSocket
-	 * @param abstractSocksImplementation
-	 *            TODO
+	 *            the output socket
 	 */
 	public TunnelThread(final CountDownLatch countDownLatch,
 			final Socket inputSocket, final Socket outputSocket) {

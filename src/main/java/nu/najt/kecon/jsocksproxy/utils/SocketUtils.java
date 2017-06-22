@@ -34,9 +34,11 @@ public class SocketUtils {
 	 *            the input socket
 	 * @param outputSocket
 	 *            the output socket
+	 * @throws IOException
+	 *             if an I/O exception occurs
 	 */
-	public static void copy(final Socket inputSocket, final Socket outputSocket)
-			throws IOException {
+	public static void copy(final Socket inputSocket,
+			final Socket outputSocket) throws IOException {
 
 		InputStream inputStream = null;
 		OutputStream outputStream = null;

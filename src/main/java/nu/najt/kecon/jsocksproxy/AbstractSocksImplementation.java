@@ -62,6 +62,8 @@ public abstract class AbstractSocksImplementation
 	 *            the clientSocket
 	 * @param logger
 	 *            the logger
+	 * @param executor
+	 *            the executor
 	 */
 	public AbstractSocksImplementation(
 			final ConfigurationFacade configurationFacade,
@@ -89,12 +91,13 @@ public abstract class AbstractSocksImplementation
 	/**
 	 * Open a connection to remote destination
 	 * 
-	 * @param host
+	 * @param inetAddress
 	 *            the host to connect to
 	 * @param port
 	 *            the port to connect to
 	 * @return established Socket
 	 * @throws IOException
+	 *             if an I/O error occurs when creating the socket.
 	 */
 	protected Socket openConnection(final InetAddress inetAddress,
 			final int port) throws IOException {
@@ -123,9 +126,12 @@ public abstract class AbstractSocksImplementation
 	 * Bind to connection
 	 * 
 	 * @param inetAddress
+	 *            the submitted inetAddress
 	 * @param suggestedPort
-	 * @return
+	 *            the submitted port
+	 * @return the server socket
 	 * @throws IOException
+	 *             if an I/O error occurs when creating the socket.
 	 */
 	protected ServerSocket bindConnection(final InetAddress inetAddress,
 			final int suggestedPort) throws IOException {
@@ -176,7 +182,9 @@ public abstract class AbstractSocksImplementation
 	 * Tunnel input to output
 	 * 
 	 * @param internal
+	 *            the internal socket
 	 * @param external
+	 *            the external socket
 	 */
 	protected void tunnel(final Socket internal, final Socket external) {
 
@@ -215,6 +223,8 @@ public abstract class AbstractSocksImplementation
 	}
 
 	/**
+	 * Get the client socket
+	 * 
 	 * @return the clientSocket
 	 */
 	protected Socket getClientSocket() {
@@ -222,16 +232,26 @@ public abstract class AbstractSocksImplementation
 	}
 
 	/**
+	 * Get the client input stream
+	 * 
 	 * @return the client input stream
 	 * @throws IOException
+	 *             if an I/O error occurs when creating the input stream, the
+	 *             socket is closed, the socket is not connected, or the socket
+	 *             input has been shutdown
 	 */
 	protected InputStream getClientInputStream() throws IOException {
 		return this.clientSocket.getInputStream();
 	}
 
 	/**
+	 * Get client output stream
+	 * 
 	 * @return the client output stream
 	 * @throws IOException
+	 *             if an I/O error occurs when creating the input stream, the
+	 *             socket is closed, the socket is not connected, or the socket
+	 *             input has been shutdown
 	 */
 	protected OutputStream getClientOutputStream() throws IOException {
 		return this.clientSocket.getOutputStream();
