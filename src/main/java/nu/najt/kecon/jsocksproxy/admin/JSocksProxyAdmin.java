@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 import javax.swing.JButton;
@@ -381,8 +382,15 @@ public final class JSocksProxyAdmin extends JFrame
 	 *            the locale
 	 */
 	private void setText(final Locale locale) {
-		this.resourceBundle = ResourceBundle.getBundle(
-				"nu.najt.kecon.jsocksproxy.admin.bundles.messages", locale);
+		try {
+			this.resourceBundle = ResourceBundle.getBundle(
+					"nu.najt.kecon.jsocksproxy.admin.bundles.messages",
+					locale);
+		} catch (MissingResourceException e) {
+			this.resourceBundle = ResourceBundle.getBundle(
+					"nu.najt.kecon.jsocksproxy.admin.bundles.messages",
+					Locale.US);
+		}
 		this.setTitle(this.resourceBundle.getString("title"));
 
 		this.setText(this.outgoingAddressLabel, "outgoing.address");
@@ -525,7 +533,7 @@ public final class JSocksProxyAdmin extends JFrame
 	 * 
 	 * @param file
 	 *            the file
-	 *            @return true if configuration was loaded, otherwise false
+	 * @return true if configuration was loaded, otherwise false
 	 */
 	public boolean loadConfiguration(final File file) {
 
