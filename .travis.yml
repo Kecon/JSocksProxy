@@ -2,6 +2,13 @@ language: java
 dist: trusty
 jdk:
   - oraclejdk8
+
+env:
+  global:
+   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+   #   via the "travis encrypt" command using the project repo's public key
+   - secure: "JlhrGXS9sgmp0RXG6zaDRfzdQyxarhZOfXQNdncewofGMBQxfIfuFOOQJ4SG9e14JZikqOSxYk3Kpyex4jGBBFnzaaLd7FPdynCezvvILiHybJcgCWkuW+AaywAg5bWIlYr0rgaiOvYxxSE60smMQbUcvyirFhjsg4rlQ1JZp4e30sL3++REStb+Bg7t2eAM4H0O3J8U/7/zgpGXk5hnH6dUDBW4YS1ibnLJPrm9+OAqIjN0wyS3YEfvbXT1DPGzZbNwyr6ELI5sucvFVF1C3xFihSN3iTx95bz+AZRH7rniEwbXPcjaOwJ/cHci030UDD6GVyMqpKIpoXRDPsS40N2qypzflV3chMN4M1re4AlJjACa+iu7gSbo+jPimCOqcWIZyvqYweqonDKOTBzcaHE47tJoOFoxDv1zosFt7ciCLt7SnKSQkwzLevDBc+q+PsmRZb8I0o4Fmri8xiFy4CngH0/vTsvAUniT+EZgZ3B6IvaK44RJVnugwsac0BmgE6yZCMk9XZdPSvFkhNd+DpAOEPy1wgc0h4a3+p8bXKn4YWGL/1MXd8CjejD9DRE4DMTCb1t1Rjmerzn6oVxWzKyFPy2CKVlJQlBA9VZJpV3JwSW5BZqWMT4hBIDLtsYKryf0qSJ8xz+4o1OY2TN17aK+WZaastQPl4vmSKgRXEc="
+
   
 before_install:
   - sudo apt-get install jq
