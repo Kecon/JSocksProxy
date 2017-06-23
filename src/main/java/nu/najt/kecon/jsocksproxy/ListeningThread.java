@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -81,10 +82,14 @@ class ListeningThread implements Runnable {
 
 		this.logger.info("Listening for incoming connections");
 
-		this.serverSocket = ServerSocketFactory.getDefault()
-				.createServerSocket(inetSocketAddress.getPort(),
-						this.configuration.getBacklog(),
-						inetSocketAddress.getAddress());
+		this.serverSocket = createServerSocket(inetSocketAddress);
+	}
+
+	protected ServerSocket createServerSocket(
+			final InetSocketAddress inetSocketAddress) throws IOException {
+		return ServerSocketFactory.getDefault().createServerSocket(
+				inetSocketAddress.getPort(), this.configuration.getBacklog(),
+				inetSocketAddress.getAddress());
 	}
 
 	@Override
@@ -93,28 +98,8 @@ class ListeningThread implements Runnable {
 
 			Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 
-			Socket socket;
 			while (this.mayRun.get()) {
-				socket = this.serverSocket.accept();
-
-				if (socket == null) {
-					continue;
-				}
-				
-				socket.setTcpNoDelay(true);
-				socket.setKeepAlive(true);
-
-				try {
-					this.executorService.execute(
-							this.getImplementation(configuration, socket));
-
-				} catch (final ProtocolException e) {
-					this.logger.info("Unknown SOCKS VERSION requested by {}",
-							formatSocket(socket), e);
-				} catch (final AccessDeniedException e) {
-					this.logger.warn("Access Denied for {}",
-							formatSocket(socket), e);
-				}
+				this.acceptConnection();
 			}
 
 			this.serverSocket.close();
@@ -126,6 +111,28 @@ class ListeningThread implements Runnable {
 		} finally {
 			this.logger.info("Shutdown SOCKS proxy for {}",
 					formatSocketAddress(this.inetSocketAddress));
+		}
+	}
+
+	protected void acceptConnection() throws IOException, SocketException {
+		Socket socket = this.serverSocket.accept();
+
+		if (socket == null) {
+			return;
+		}
+
+		socket.setTcpNoDelay(true);
+		socket.setKeepAlive(true);
+
+		try {
+			this.executorService
+					.execute(this.getImplementation(configuration, socket));
+
+		} catch (final ProtocolException e) {
+			this.logger.info("Unknown SOCKS VERSION requested by {}",
+					formatSocket(socket), e);
+		} catch (final AccessDeniedException e) {
+			this.logger.warn("Access Denied for {}", formatSocket(socket), e);
 		}
 	}
 
