@@ -10,8 +10,6 @@ before_install:
 
 after_success:
   - java -cp ~/codacy-coverage-reporter-assembly-latest.jar com.codacy.CodacyCoverageReporter -l Java -r target/site/jacoco/jacoco.xml
-  
-  before_install:
 
 addons:
   coverity_scan:
