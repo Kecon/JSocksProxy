@@ -49,6 +49,10 @@ import nu.najt.kecon.jsocksproxy.socks5.SocksImplementation5;
 @RunWith(MockitoJUnitRunner.class)
 public class ListeningThreadTest {
 
+	private static final String IP_192_168_0_1 = "192.168.0.1";
+
+	private static final String IP_192_168_0_2 = "192.168.0.2";
+
 	@Mock
 	private ConfigurationFacade configuration;
 
@@ -71,7 +75,7 @@ public class ListeningThreadTest {
 	@Before
 	public void before() throws IOException {
 
-		InetAddress inetAddress = InetAddress.getByName("192.168.0.1");
+		InetAddress inetAddress = InetAddress.getByName(IP_192_168_0_1);
 		inetSocketAddress = new InetSocketAddress(inetAddress, 1080);
 
 		this.listeningThread = new ListeningThread(configuration, logger,
@@ -129,7 +133,7 @@ public class ListeningThreadTest {
 				new byte[] { 0x03, 0x02, 0x00, 0x50, 0x42, 0x66, 0x07, 0x63,
 						0x46, 0x72, 0x65, 0x64, 0x00 }));
 		when(socket.getInetAddress())
-				.thenReturn(InetAddress.getByName("192.168.0.2"));
+				.thenReturn(InetAddress.getByName(IP_192_168_0_2));
 
 		listeningThread.acceptConnection();
 
@@ -144,7 +148,7 @@ public class ListeningThreadTest {
 						0x46, 0x72, 0x65, 0x64, 0x00 }));
 
 		when(socket.getInetAddress())
-				.thenReturn(InetAddress.getByName("192.168.0.2"));
+				.thenReturn(InetAddress.getByName(IP_192_168_0_2));
 		when(configuration.isAllowSocks4()).thenReturn(false);
 
 		listeningThread.acceptConnection();
@@ -160,7 +164,7 @@ public class ListeningThreadTest {
 						0x46, 0x72, 0x65, 0x64, 0x00 }));
 
 		when(socket.getInetAddress())
-				.thenReturn(InetAddress.getByName("192.168.0.2"));
+				.thenReturn(InetAddress.getByName(IP_192_168_0_2));
 		when(configuration.isAllowSocks5()).thenReturn(false);
 
 		listeningThread.acceptConnection();
