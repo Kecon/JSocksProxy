@@ -15,6 +15,8 @@
  */
 package nu.najt.kecon.jsocksproxy.socks5;
 
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -67,6 +69,12 @@ public enum Command {
 		}
 
 		return command;
+	}
+
+	public static Command valueOf(final DataInputStream inputStream)
+			throws IllegalCommandException, IOException {
+
+		return valueOf(inputStream.readByte());
 	}
 
 }
