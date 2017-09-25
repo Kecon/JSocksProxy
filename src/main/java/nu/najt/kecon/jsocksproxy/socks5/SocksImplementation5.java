@@ -16,6 +16,7 @@
 package nu.najt.kecon.jsocksproxy.socks5;
 
 import java.io.BufferedOutputStream;
+import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
@@ -73,110 +74,26 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 		DataInputStream inputStream = null;
 		DataOutputStream outputStream = null;
 		Socket clientSocket = null;
-		AddressType addressType = AddressType.IP_V4;
-		String host = null;
+		EndPoint endPoint = null;
 
 		try {
 			this.setup();
 
 			// Handshake
-			inputStream = new DataInputStream(this.getClientInputStream());
-			outputStream = new DataOutputStream(
-					new BufferedOutputStream(this.getClientOutputStream()));
+			inputStream = getInputStream();
+			outputStream = getOutputStream();
 
 			this.authenticate(inputStream, outputStream);
-
-			readVersion(inputStream);
-
-			final Command command = Command.valueOf(inputStream.readByte());
-			final byte[] hostname;
-
+			this.readVersion(inputStream);
+			final Command command = Command.valueOf(inputStream);
 			inputStream.readByte(); // reserved byte
-
-			addressType = AddressType.valueOf(inputStream.readByte());
-			final InetAddress remoteInetAddress;
-			if (addressType == AddressType.IP_V4) {
-
-				final byte[] address = new byte[4];
-				inputStream.readFully(address);
-				remoteInetAddress = InetAddress.getByAddress(address);
-				hostname = null;
-
-			} else if (addressType == AddressType.IP_V6) {
-
-				final byte[] address = new byte[16];
-				inputStream.readFully(address);
-				remoteInetAddress = InetAddress.getByAddress(address);
-				hostname = null;
-
-			} else if (addressType == AddressType.DOMAIN) {
-
-				final int hostLength = inputStream.readByte() & 0xFF;
-				final byte[] hostBuf = new byte[hostLength];
-
-				inputStream.readFully(hostBuf);
-				remoteInetAddress = InetAddress
-						.getByName(new String(hostBuf, "US-ASCII"));
-				hostname = hostBuf;
-
-			} else {
-				// Should be impossible
-				throw new IllegalAddressTypeException(
-						"Unsupported address type: " + addressType);
-			}
-
-			host = remoteInetAddress.getHostAddress();
-			final int port = inputStream.readShort() & 0xFFFF;
-
-			if (command == Command.CONNECT) {
-				try {
-					clientSocket = this.openConnection(remoteInetAddress,
-							port);
-				} catch (final IOException e) {
-					this.logger.info("Failed to connect to: {}:{}", host,
-							port);
-					this.writeResponse(outputStream, Status.HOST_UNREACHABLE,
-							addressType, remoteInetAddress, hostname, port);
-					return;
-				}
-
-				this.writeResponse(outputStream, Status.SUCCEEDED, addressType,
-						clientSocket.getLocalAddress(), hostname,
-						clientSocket.getLocalPort());
-
-				this.tunnel(this.getClientSocket(), clientSocket);
-
-				this.logger.debug("Disconnected");
-			} else if (command == Command.BIND) {
-				final ServerSocket serverSocket = this
-						.bindConnection(remoteInetAddress, port);
-
-				try {
-
-					this.writeResponse(outputStream, Status.SUCCEEDED,
-							addressType, serverSocket.getInetAddress(),
-							hostname, serverSocket.getLocalPort());
-
-					clientSocket = serverSocket.accept();
-					this.logger.info("Accepted");
-				} finally {
-					serverSocket.close();
-				}
-
-				this.writeResponse(outputStream, Status.SUCCEEDED, addressType,
-						clientSocket.getInetAddress(), null,
-						clientSocket.getPort());
-
-				this.tunnel(this.getClientSocket(), clientSocket);
-			} else {
-				throw new IllegalCommandException(
-						"Unknown command: " + command);
-			}
+			endPoint = this.parseRemoteAddressPort(inputStream);
+			clientSocket = handleCommand(outputStream, command, endPoint);
 		} catch (final UnknownHostException e) {
-			this.logger.warn("Failed to resolve host: {}", host, e);
+			this.logger.warn("Failed to resolve host", e);
 			try {
 				this.writeResponse(outputStream, Status.HOST_UNREACHABLE,
-						addressType, null, null, 0);
+						getAddressType(endPoint), null, null, 0);
 			} catch (final IOException ioe) {
 			}
 		} catch (final RuntimeException e) {
@@ -184,58 +101,44 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 
 			try {
 				this.writeResponse(outputStream,
-						Status.GENERAL_SOCKS_SERVER_FAILURE, addressType, null,
-						null, 0);
+						Status.GENERAL_SOCKS_SERVER_FAILURE,
+						getAddressType(endPoint), null, null, 0);
 			} catch (final IOException ioe) {
 			}
 		} catch (final ProtocolException | IllegalCommandException e) {
 			try {
 				this.writeResponse(outputStream, Status.COMMAND_NOT_SUPPORTED,
-						addressType, null, null, 0);
+						getAddressType(endPoint), null, null, 0);
 			} catch (final IOException ioe) {
 			}
 		} catch (final IOException e) {
 		} catch (final IllegalAddressTypeException e) {
 			try {
 				this.writeResponse(outputStream,
-						Status.ADDRESS_TYPE_NOT_SUPPORTED, addressType, null,
-						null, 0);
+						Status.ADDRESS_TYPE_NOT_SUPPORTED,
+						getAddressType(endPoint), null, null, 0);
 			} catch (final IOException ioe) {
 			}
 		} finally {
-			if (inputStream != null) {
-				try {
-					inputStream.close();
-				} catch (final IOException e) {
-				}
-			}
-
-			if (outputStream != null) {
-				try {
-					outputStream.close();
-				} catch (final IOException e) {
-				}
-			}
-
-			if (this.getClientSocket() != null) {
-				try {
-					this.getClientSocket().close();
-				} catch (final IOException e) {
-				}
-			}
-
-			if (clientSocket != null) {
-				try {
-					clientSocket.close();
-				} catch (final IOException e) {
-				}
-			}
+			safeClose(inputStream);
+			safeClose(outputStream);
+			safeClose(this.getClientSocket());
+			safeClose(clientSocket);
 
 			this.cleanup();
 		}
 	}
 
-	private void readVersion(DataInputStream inputStream)
+	private DataOutputStream getOutputStream() throws IOException {
+		return new DataOutputStream(
+				new BufferedOutputStream(this.getClientOutputStream()));
+	}
+
+	private DataInputStream getInputStream() throws IOException {
+		return new DataInputStream(this.getClientInputStream());
+	}
+
+	private void readVersion(final DataInputStream inputStream)
 			throws IOException, ProtocolException {
 		final byte socksVersion = inputStream.readByte();
 
@@ -271,6 +174,129 @@ public class SocksImplementation5 extends AbstractSocksImplementation {
 			outputStream.flush();
 			this.logger.info("No supported authentication methods specified");
 			throw new EOFException();
+		}
+	}
+
+	public EndPoint parseRemoteAddressPort(DataInputStream inputStream)
+			throws IllegalAddressTypeException, IOException {
+		final AddressType addressType = AddressType
+				.valueOf(inputStream.readByte());
+		final byte[] hostname;
+		final String host;
+		final int port;
+		final InetAddress remoteInetAddress;
+
+		if (addressType == AddressType.IP_V4) {
+
+			final byte[] address = new byte[4];
+			inputStream.readFully(address);
+			remoteInetAddress = InetAddress.getByAddress(address);
+			hostname = null;
+
+		} else if (addressType == AddressType.IP_V6) {
+
+			final byte[] address = new byte[16];
+			inputStream.readFully(address);
+			remoteInetAddress = InetAddress.getByAddress(address);
+			hostname = null;
+
+		} else if (addressType == AddressType.DOMAIN) {
+
+			final int hostLength = inputStream.readByte() & 0xFF;
+			final byte[] hostBuf = new byte[hostLength];
+
+			inputStream.readFully(hostBuf);
+			remoteInetAddress = InetAddress
+					.getByName(new String(hostBuf, "US-ASCII"));
+			hostname = hostBuf;
+
+		} else {
+			// Should be impossible
+			throw new IllegalAddressTypeException(
+					"Unsupported address type: " + addressType);
+		}
+
+		host = remoteInetAddress.getHostAddress();
+		port = inputStream.readShort() & 0xFFFF;
+		return new EndPoint(addressType, remoteInetAddress, hostname, host,
+				port);
+	}
+
+	protected Socket handleConnect(final DataOutputStream outputStream,
+			final EndPoint endPoint) throws IOException {
+		Socket clientSocket = null;
+		try {
+			clientSocket = this.openConnection(endPoint.getRemoteInetAddress(),
+					endPoint.getPort());
+
+			this.writeResponse(outputStream, Status.SUCCEEDED,
+					endPoint.getAddressType(), clientSocket.getLocalAddress(),
+					endPoint.getHostname(), clientSocket.getLocalPort());
+
+			this.tunnel(this.getClientSocket(), clientSocket);
+
+			this.logger.debug("Disconnected");
+		} catch (final IOException e) {
+			this.logger.info("Failed to connect to: {}:{}", endPoint.getHost(),
+					endPoint.getPort());
+
+			this.writeResponse(outputStream, Status.HOST_UNREACHABLE,
+					endPoint.getAddressType(), endPoint.getRemoteInetAddress(),
+					endPoint.getHostname(), endPoint.getPort());
+		}
+		return clientSocket;
+	}
+
+	protected Socket handleBind(final DataOutputStream outputStream,
+			final EndPoint endPoint) throws IOException {
+		final Socket clientSocket;
+		final ServerSocket serverSocket = this.bindConnection(
+				endPoint.getRemoteInetAddress(), endPoint.getPort());
+
+		try {
+
+			this.writeResponse(outputStream, Status.SUCCEEDED,
+					endPoint.getAddressType(), serverSocket.getInetAddress(),
+					endPoint.getHostname(), serverSocket.getLocalPort());
+
+			clientSocket = serverSocket.accept();
+			this.logger.info("Accepted");
+		} finally {
+			serverSocket.close();
+		}
+
+		this.writeResponse(outputStream, Status.SUCCEEDED,
+				endPoint.getAddressType(), clientSocket.getInetAddress(), null,
+				clientSocket.getPort());
+
+		this.tunnel(this.getClientSocket(), clientSocket);
+		return clientSocket;
+	}
+
+	private AddressType getAddressType(final EndPoint endPoint) {
+		return endPoint == null ? AddressType.IP_V4
+				: endPoint.getAddressType();
+	}
+
+	private Socket handleCommand(final DataOutputStream outputStream,
+			final Command command, EndPoint endPoint)
+			throws IOException, IllegalCommandException {
+
+		if (command == Command.CONNECT) {
+			return handleConnect(outputStream, endPoint);
+		} else if (command == Command.BIND) {
+			return handleBind(outputStream, endPoint);
+		} else {
+			throw new IllegalCommandException("Unknown command: " + command);
+		}
+	}
+
+	private void safeClose(final Closeable closeable) {
+		if (closeable != null) {
+			try {
+				closeable.close();
+			} catch (final IOException e) {
+			}
 		}
 	}
 
